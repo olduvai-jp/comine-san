@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { program } from 'commander';
 import * as comfy from "./comfyui";
-import { outputNodeTargetList, OutputNode } from "./outputNode";
+import { outputNodeTargetList, OutputNode, Image, Text } from "./outputNode";
 import { inputNodeTargetList } from "./inputNode";
 
 
@@ -18,7 +18,6 @@ const parseBoolean =(booleanStr: string): boolean => {
 
 
 async function main() {
-
   // workflow.json の読み込み
   const jsonFilePath = process.argv[2];
   const workflow = JSON.parse(fs.readFileSync(jsonFilePath, 'utf8'));
@@ -38,10 +37,7 @@ async function main() {
       const optionName: string = workflow[nodeNumber]._meta.title.replace(" ", "_")
       const explanation: string = "save path"
 
-      outputNodeDict[nodeNumber] = {
-          title: optionName,
-          save: outputNode.save
-        }
+      outputNodeDict[nodeNumber] = new outputNode.node();
 
       program.option(`--${optionName} <string>`, explanation)
     }
