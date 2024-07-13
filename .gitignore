@@ -131,6 +131,6 @@ dist
 
 
 # debug file
-workflow_sample/
 *.png
 *.txt
+*.json

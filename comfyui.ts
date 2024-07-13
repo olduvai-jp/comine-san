@@ -34,27 +34,33 @@ export const queue = async(url:string, comfyParams:any, outputNodeDict: {[key: s
   }
   
 
-  ws.on('message', async (data:Buffer) => {
-    
-    try {
-      const message = JSON.parse(data.toString());
+  return new Promise<void>((resolve) => {
+    ws.on('message', async (data:Buffer) => {
+      
+      try {
+        const message = JSON.parse(data.toString());
 
-      if(message.type === 'executed') {
-        const messageData = message.data
-                
-        if( Object.keys(outputNodeDict).includes(messageData.node) ) {
-          outputNodeDict[messageData.node].save(messageData.output);
-          delete outputNodeDict[messageData.node];
+        if(message.type === 'executed') {
+          const messageData = message.data
+                  
+          if( Object.keys(outputNodeDict).includes(messageData.node) ) {
+            outputNodeDict[messageData.node].put(messageData.output);
+
+            console.log(messageData.output)
+          //  delete outputNodeDict[messageData.node];
+          }
         }
+      } catch (e) {
+        console.log(e);
+        ws.close();
+        resolve()
       }
-    } catch (e) {
-      console.log(e);
-      ws.close();
-    }
 
-    if( Object.keys(outputNodeDict).length === 0 ) {
-      ws.close();
-    }
+      if( Object.values(outputNodeDict).every(hoge => Array.isArray(hoge.result) && hoge.result.length !== 0)  ) {
+        ws.close();
+        resolve()
+      }
 
-  });
+    });
+  })
 }
