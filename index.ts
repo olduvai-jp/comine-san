@@ -1,122 +1,61 @@
 import * as fs from 'fs';
-import { OptionValues, program } from 'commander';
-import * as comfy from "./comfyui";
-import { outputNodeTargetList, OutputNode, Image, Text } from "./outputNode";
-import { inputNodeTargetList } from "./inputNode";
-import { exit } from 'process';
+import { Command } from 'commander';
+import { ComfyUiWorkflow } from './workflow';
+import { ComfyAPIClient } from './comfyui';
 
+// main関数
+;(async () => {
+  const program = new Command('comine-san');
 
-interface ComfyReplaceNodeData {
-  optionName: string;
-  type: string;
-  nodeNumber: string;
-}
+  program
+    .argument('<workflow-path>', 'path to workflow_api.json')
+    .argument('<output-json>', 'path to output json');
 
-const parseBoolean =(booleanStr: string): boolean => {
-  return booleanStr.toLowerCase() === "true";
-}
+  program.parse(process.argv.slice(0, 3)); // 最初の引数(jsonpath)のみをパース
 
-const parseArguments = (replaceinputNodeTargetList:ComfyReplaceNodeData[], outputNodeDict: { [key: string]: OutputNode }, workflow:any):OptionValues => {
-  // workflow内のinput nodeを取得
-  Object.keys(workflow).forEach((nodeNumber) => {
-    const inputNode = inputNodeTargetList.find( (inputNode) => inputNode.class_type === workflow[nodeNumber].class_type)
-    const outputNode = outputNodeTargetList.find( (outputNode) => outputNode.title === workflow[nodeNumber]._meta.title)
+  const jsonFilePath = program.args[0];
 
-    if( outputNode !== undefined ) {
-
-      const optionName: string = workflow[nodeNumber]._meta.title.replace(/[\s_]/g, '-')
-      const explanation: string = "save path"
-
-      outputNodeDict[nodeNumber] = new outputNode.node();
-
-      program.option(`--${optionName} <string>`, explanation)
-    }
-
-    if( inputNode !== undefined ) {
-
-      const optionName: string = workflow[nodeNumber]._meta.title.replace(/[\s_]/g, '-')
-      const type: string = inputNode.input_type
-      const explanation: string = inputNode.class_type
-
-      // 置換するnodeのnodeNumberとoptionName, typeをリストに追加
-      // optionNameはオプション名に利用
-      // nodeNumber, typeはnodeに代入するときのキーに利用
-      replaceinputNodeTargetList.push({
-        optionName: optionName,
-        type: type,
-        nodeNumber: nodeNumber
-      });
-
-      // オプションの追加、string以外は型に合わせて変換
-      if(type === "string") {
-        program.option(`--${optionName} <${type}>`, explanation)
-      } else if(type === "int") {
-        program.option(`--${optionName} <${type}>`, explanation, parseInt)
-      } else if(type === "float") {
-        program.option(`--${optionName} <${type}>`, explanation, parseFloat)
-      } else if(type === "boolean") {
-        program.option(`--${optionName} <${type}>`, explanation, parseBoolean)
-      }
-    }
-  })
-
-  program.option(`--output <string>`, 'output dir path', 'output')
-
-  // オプションの解析
-  program.parse()
-  return program.opts()
-}
-
-async function main() {
-  // workflow.json の読み込み
-  const jsonFilePath = process.argv[2];
-  const workflow = JSON.parse(fs.readFileSync(jsonFilePath, 'utf8'));
-
-  // 置換するnodeのリスト
-  const replaceinputNodeTargetList: ComfyReplaceNodeData[] = []
-  const outputNodeDict: { [key: string]: OutputNode } = {}
-
-  const options = parseArguments(replaceinputNodeTargetList, outputNodeDict, workflow)
-
-  if( options.outputDir === ''){
-    console.log("出力ディレクトリを指定してね")
-    exit()
+  if (!jsonFilePath) {
+    program.help();
   }
 
-  // 置換
-  for(const comfyReplaceNode of replaceinputNodeTargetList) {
-    const value = options[comfyReplaceNode.optionName]
+  // Workflowを読み込み
+  if (!fs.existsSync(jsonFilePath)) {
+    console.error(`File not found: ${jsonFilePath}`);
+    process.exit(1);
+  }
 
-    if( value !== undefined ) {
-      workflow[comfyReplaceNode.nodeNumber].inputs[comfyReplaceNode.type] = value
-      
-      console.log(workflow[comfyReplaceNode.nodeNumber])
-      console.log(typeof value)
+  const workflow = new ComfyUiWorkflow(JSON.parse(fs.readFileSync(jsonFilePath, 'utf8')));
+  const wfParams = workflow.getWorkflowParams();
+  // console.log(wfParams);
+
+  // JSONのキーをコマンドオプションとして追加
+  Object.entries(wfParams).forEach(([key, value]) => {
+    //console.log(`Adding option: --${key} <${typeof value}>, default ${value}`);
+    switch (typeof value) {
+      case 'string':
+        program.option(`--${key} <string>`, `provide a ${key}`, value);
+        break;
+      case 'number':
+        program.option(`--${key} <number>`, `provide a ${key}`, Number, value);
+        break;
+      case 'boolean':
+        program.option(`--${key} <boolean>` , `provide a ${key}`, (v) => v === 'true', value);
+        break;
     }
+  });
+
+  program.parse(process.argv);
+
+  if (process.argv.length <= 2) {
+    program.help();
   }
 
-  // workflowをapiになげる
-  console.log("queue comfy")
-  await comfy.queue("http://192.168.0.55:8188", workflow, outputNodeDict)
+  const options = program.opts();
+  console.log('Parsed options:', options);
 
-  console.log("save...")
-  let resultJson:{ [key: string]: any } = {}
-  await Promise.all(Object.keys(outputNodeDict).map(async (key) => {
-    const outputNode = outputNodeDict[key];
-    outputNode.outputDir = options.output
-    resultJson[outputNode.title] = await outputNode.saveToJson();
-  }));
+  workflow.setWorkflowParams(options);
 
-
-  // save to json file
-  if( !fs.existsSync(options.output) ){
-    fs.mkdirSync(options.output)
-  }
-  fs.writeFileSync(`${options.output}/result.json`, JSON.stringify(resultJson))
-}
-
-
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+  const apiInstance = new ComfyAPIClient('http://192.168.23.17:8188')
+  await apiInstance.queue(workflow, program.args[1]);
+})();

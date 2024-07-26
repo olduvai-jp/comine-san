@@ -1,66 +1,110 @@
-import { fstat } from 'fs';
-import WebSocket from 'ws';
-import { OutputNode } from './outputNode';
+import { WebSocket } from 'ws';
+import * as crypto from 'crypto';
+import { ComfyUiWorkflow } from './workflow';
 
-const getWebSocketProtocol = (baseUrl: string): string => {
-  const url = new URL(baseUrl);
-  if (url.protocol === 'https:'){
-    return baseUrl.replace('https:', 'wss:');
-  } else {
-    return baseUrl.replace('http:', 'ws:');
-  }
+interface ViewQuery {
+  filename?: string;
+  type?: string;
+  subfolder?: string;
 }
 
-export const queue = async(url:string, comfyParams:any, outputNodeDict: {[key: string]: OutputNode} ) => {
-  const uuid = crypto.randomUUID();
-  const ws = new WebSocket(`${getWebSocketProtocol(url)}/ws?clientId=${uuid}`);
+export class ComfyAPIClient {
+  private _url: string;
 
-  const res = await fetch(`${url}/prompt`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      prompt: comfyParams,
-      client_id: uuid,
-    }),
-  });
-
-  const json = await res.json();
-  
-  if (res.status !== 200) {
-    console.log(json);
-    throw new Error(JSON.stringify(json));
+  constructor(url: string) {
+    this._url = url;
   }
-  
 
-  return new Promise<void>((resolve) => {
-    ws.on('message', async (data:Buffer) => {
-      
-      try {
-        const message = JSON.parse(data.toString());
+  private get wsUrl(): string {
+    const protcol = this._url.startsWith('https') ? 'wss' : 'ws'
+    return `${protcol}://${new URL(this._url).host}`;
+  }
 
-        if(message.type === 'executed') {
-          const messageData = message.data
-                  
-          if( Object.keys(outputNodeDict).includes(messageData.node) ) {
-            outputNodeDict[messageData.node].put(messageData.output);
+  private get url(): string {
+    return this._url;
+  }
 
-            console.log(messageData.output)
-          //  delete outputNodeDict[messageData.node];
-          }
-        }
-      } catch (e) {
-        console.log(e);
-        ws.close();
-        resolve()
-      }
+  async view(query: ViewQuery): Promise<Buffer> {
+    const url = `${this.url}/view?${new URLSearchParams(query as Record<string, string>)}`
+    // console.log(url);
+    const res = await fetch(url);
+    return Buffer.from(await res.arrayBuffer());
+  }
 
-      if( Object.values(outputNodeDict).every(hoge => Array.isArray(hoge.result) && hoge.result.length !== 0)  ) {
-        ws.close();
-        resolve()
-      }
+  async queue(workflow: ComfyUiWorkflow, outputPath: string): Promise<void> {
+    const apiInstance = this;
 
+    const uuid = crypto.randomUUID();
+    const ws = new WebSocket(`${this.wsUrl}/ws?clientId=${uuid}`);
+    // ws.binaryType = "arraybuffer";
+
+    const res = await fetch(`${this.url}/prompt`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: workflow.getModifiedJson(),
+        client_id: uuid,
+      }),
     });
-  })
+
+    const json = await res.json();
+
+    if (res.status !== 200) {
+      console.log(json);
+      throw new Error(JSON.stringify(json));
+    }
+
+    //console.log(res.status);
+
+    await new Promise<void>((resolve) => {
+      ws.on('close', () => {
+        workflow.outputEmitter.emit('disconnected', apiInstance);
+        resolve();
+      });
+
+      ws.on('error', (err) => {
+        console.log(err);
+        resolve();
+      });
+
+      ws.on('message', async (data: Buffer) => {
+        try {
+          const message = JSON.parse(data.toString());
+
+          switch (message.type) {
+            case 'progress':
+              workflow.outputEmitter.emit('progress', apiInstance, message.data);
+              break;
+            case 'executing':
+              workflow.outputEmitter.emit('executing', apiInstance, message.data);
+              if (message.data.prompt_id === (json as any).prompt_id && message.data.node == null) {
+                ws.close();
+              }
+              break;
+            case 'executed':
+              workflow.outputEmitter.emit('executed', apiInstance, message.data);
+              break;
+            case 'status':
+              break;
+            case 'execution_start':
+              console.log('Execution started');
+              break;
+            case 'execution_cached':
+              console.log('Execution cached');
+              break;
+            case 'crystools.monitor':
+              break;
+            default:
+              console.log('Unknown message type');
+              console.log(message);
+              break;
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      });
+    });
+  }
 }
