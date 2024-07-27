@@ -31,7 +31,7 @@ export class ComfyAPIClient {
     return Buffer.from(await res.arrayBuffer());
   }
 
-  async queue(workflow: ComfyUiWorkflow, outputPath: string): Promise<void> {
+  async queue(workflow: ComfyUiWorkflow): Promise<void> {
     const apiInstance = this;
 
     const uuid = crypto.randomUUID();
@@ -89,10 +89,8 @@ export class ComfyAPIClient {
             case 'status':
               break;
             case 'execution_start':
-              console.log('Execution started');
               break;
             case 'execution_cached':
-              console.log('Execution cached');
               break;
             case 'crystools.monitor':
               break;

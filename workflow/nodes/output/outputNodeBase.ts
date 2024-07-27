@@ -17,8 +17,12 @@ export class OutputNode {
     this._title = title.replace(/[^a-zA-Z0-9_-]/g, '_');
   }
 
-  get inputs() {
-    return this._inputs;
+  get inputs () {
+    return JSON.parse(JSON.stringify(this._inputs));
+  }
+
+  set inputs(inputs: any) {
+    this._inputs = inputs;
   }
 
   get title() {
@@ -57,7 +61,17 @@ export class OutputNode {
   onDisconnect(comfyui:any) {
   }
 
-  onResult() {
-    return {};
+  resultType(): any {
+    new Error('resultType is not implemented');
+    // return {
+    //   'any' : 'any'
+    // };
+  }
+
+  result(): any {
+    new Error('result is not implemented');
+    // return {
+    //   'any' : 'any'
+    // };
   }
 }

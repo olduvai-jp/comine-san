@@ -21,12 +21,16 @@ export class InputNode {
   }
 
   get inputs () {
-    return this._inputs;
+    return JSON.parse(JSON.stringify(this._inputs));
+  }
+
+  set inputs(inputs: any) {
+    this._inputs = inputs;
   }
 
   constructor(nodeId: string, title: string, inputs: any) {
     this.nodeId = nodeId;
-    this._title = title;
+    this._title = title.replace(/[^a-zA-Z0-9_-]/g, '_');
     this._inputs = inputs;
   }
 

@@ -15,35 +15,36 @@ export class ShowAnyToJson extends OutputNode {
   constructor(nodeId: string, rawTitle: string) {
     super(nodeId, rawTitle);
 
-    // override inputs
     this._inputs = {
       //'filename': `${this.title}.png`
     }
-
-    console.log('SaveImage constructor');
-    console.log('nodeId:', this.nodeId);
-
   }
 
   registEventsToEmitter(emitter: EventEmitter): void {
     emitter.on('executed', this.onExecuted.bind(this));
-    emitter.on('disconnected', this.onDisconnected.bind(this));
   }
 
   onExecuted(_:any, data: any): void {
     const nodeId = data.node as string;
     if (nodeId !== this.nodeId) return;
 
-    console.log('Executed:', JSON.stringify(data, null, 2));
+    // console.log('Executed:', JSON.stringify(data, null, 2));
 
     const textJson = data.output.text;
 
     this.text = JSON.stringify(textJson);
   }
 
-  onDisconnected(comfyui: ComfyAPIClient): ShowAnyToJsonOutputs {
+  resultType(): ShowAnyToJsonOutputs {
     return {
-      text: this.text,
+      text: 'string',
+    };
+  }
+  
+  result(): ShowAnyToJsonOutputs {
+    const text = this.text;
+    return {
+      text,
     };
   }
 }

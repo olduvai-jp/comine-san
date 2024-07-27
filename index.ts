@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import { Command } from 'commander';
-import { ComfyUiWorkflow } from './workflow';
-import { ComfyAPIClient } from './comfyui';
+import { ComfyUiWorkflow } from './workflow/workflow';
 
 // main関数
 ;(async () => {
@@ -11,7 +10,7 @@ import { ComfyAPIClient } from './comfyui';
     .argument('<workflow-path>', 'path to workflow_api.json')
     .argument('<output-json>', 'path to output json');
 
-  program.parse(process.argv.slice(0, 3)); // 最初の引数(jsonpath)のみをパース
+  program.parse(process.argv.slice(0, 4)); // 最初の引数(jsonpath)のみをパース
 
   const jsonFilePath = program.args[0];
 
@@ -27,9 +26,8 @@ import { ComfyAPIClient } from './comfyui';
 
   const workflow = new ComfyUiWorkflow(JSON.parse(fs.readFileSync(jsonFilePath, 'utf8')));
   const wfParams = workflow.getWorkflowParams();
-  // console.log(wfParams);
 
-  // JSONのキーをコマンドオプションとして追加
+  // Workflowのパラメータをコマンドオプションとして追加
   Object.entries(wfParams).forEach(([key, value]) => {
     //console.log(`Adding option: --${key} <${typeof value}>, default ${value}`);
     switch (typeof value) {
@@ -45,17 +43,27 @@ import { ComfyAPIClient } from './comfyui';
     }
   });
 
+  // 出力形式をhelpに追加
+  const resultTypes = workflow.getWorkflowResultTypes();
+  program.addHelpText('after', '\nResult types:\n' + JSON.stringify(resultTypes, null, 2));
+
   program.parse(process.argv);
 
-  if (process.argv.length <= 2) {
+  if (process.argv.length <= 3) {
     program.help();
   }
 
+  // パラメータをWorkflowにセット
   const options = program.opts();
-  console.log('Parsed options:', options);
 
   workflow.setWorkflowParams(options);
 
-  const apiInstance = new ComfyAPIClient('http://192.168.23.17:8188')
-  await apiInstance.queue(workflow, program.args[1]);
+  await workflow.execute('http://192.168.23.17:8188');
+  
+  const results = workflow.getWorkflowResult();
+
+  const outputJsonPath = program.args[1];
+  fs.writeFileSync(outputJsonPath, JSON.stringify(results, null, 2));
+  console.log(`Output json saved to ${outputJsonPath}`);
+
 })();

@@ -8,6 +8,6 @@ export class PrimitiveIntegerCrystools extends InputNode {
   static _className = 'Primitive integer [Crystools]';
 
   get inputs() {
-    return this._inputs as PrimitiveIntegerCrystoolsInputs;
+    return super.inputs as PrimitiveIntegerCrystoolsInputs;
   }
 }

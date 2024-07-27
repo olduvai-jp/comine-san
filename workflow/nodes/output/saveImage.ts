@@ -2,7 +2,7 @@ import EventEmitter from 'events';
 import { OutputNode } from './outputNodeBase';
 import { ComfyAPIClient } from '../../comfyui';
 import * as fs from 'fs/promises';
-
+import path from 'path';
 interface SaveImageOutputs {
   filename: string;
 }
@@ -22,9 +22,6 @@ export class SaveImage extends OutputNode {
       'filename': `${this.title}.png`
     }
 
-    console.log('SaveImage constructor');
-    console.log('nodeId:', this.nodeId);
-
   }
 
   registEventsToEmitter(emitter: EventEmitter): void {
@@ -40,7 +37,11 @@ export class SaveImage extends OutputNode {
     })
 
     const saveDir = saveFilePath.split('/').slice(0, -1).join('/');
-    await fs.mkdir(saveDir, { recursive: true });
+    try {
+      await fs.mkdir(saveDir, { recursive: true});
+    } catch (e) {
+      // noop
+    }
 
     await fs.writeFile(saveFilePath, Buffer.from(imageBuffer));
 
@@ -70,8 +71,14 @@ export class SaveImage extends OutputNode {
     this.imageSave(comfyui, saveFilePath);
   }
 
-  onResult(): SaveImageOutputs {
-    const filename = this._inputs['filename'];
+  resultType(): SaveImageOutputs {
+    return {
+      filename: 'string',
+    };
+  }
+
+  result(): SaveImageOutputs {
+    const filename = path.resolve(this._inputs['filename']);
 
     return {
       filename,

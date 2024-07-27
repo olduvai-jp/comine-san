@@ -1,5 +1,5 @@
 import EventEmitter from 'events';
-
+import { ComfyAPIClient } from './comfyui';
 import { InputNode } from './nodes/input/inputNodeBase';
 import { PrimitiveStringCrystools } from './nodes/input/primitiveString';
 import { PrimitiveIntegerCrystools } from './nodes/input/primitiveInteger';
@@ -7,16 +7,19 @@ import { PrimitiveIntegerCrystools } from './nodes/input/primitiveInteger';
 import { OutputNode } from './nodes/output/outputNodeBase';
 import { SaveImage } from './nodes/output/saveImage';
 import { ShowAnyToJson } from './nodes/output/showAnyToJson';
-
+import { LoadImageBase64 } from './nodes/input/loadImageBase64';
+import { ShowTextPysssss } from './nodes/output/showText';
 
 const inputNodeClasses = [
   PrimitiveStringCrystools,
-  PrimitiveIntegerCrystools
+  PrimitiveIntegerCrystools,
+  LoadImageBase64
 ];
 
 const outputNodeClasses = [
   SaveImage,
-  ShowAnyToJson
+  ShowAnyToJson,
+  ShowTextPysssss
 ];
 
 // interfaces
@@ -84,6 +87,8 @@ export class ComfyUiWorkflow {
           inputs[inputKey] = params[key];
         }
       })
+
+      inputNodeInstance.inputs = inputs;
     }
 
     // outputノードの入力を上書き
@@ -97,7 +102,32 @@ export class ComfyUiWorkflow {
           inputs[inputKey] = params[key];
         }
       })
+
+      outputNodeInstance.inputs = inputs;
     }
+  }
+
+  getWorkflowResultTypes() {
+    const resultTypes: { [key: string]: string } = {};
+
+    for(const outputNodeInstance of this.outputNodeInstances) {
+      const title = outputNodeInstance.title;
+      const resultType = outputNodeInstance.resultType();
+      resultTypes[title] = resultType;
+    }
+
+    return resultTypes;
+  }
+
+  getWorkflowResult() {
+    const results: { [key: string]: any } = {};
+    for(const outputNodeInstance of this.outputNodeInstances) {
+      const title = outputNodeInstance.title;
+      const result = outputNodeInstance.result();
+      results[title] = result;
+    }
+
+    return results;
   }
 
   constructor(workflowJson: ComfuUIWorkflowJson) {
@@ -152,10 +182,14 @@ export class ComfyUiWorkflow {
     return modifiedJson;
   }
 
-  correctOutputJson() {
-    for(const outputNodeInstance of this.outputNodeInstances) {
-      outputNodeInstance.onResult();
-    }
+  async execute(hostUrl: string) {
+    const ComfyAPIClientInstance = new ComfyAPIClient(hostUrl);
+
+    // パラメーター上書き済みのJSONを取得
+    const modifiedJson = this.getModifiedJson();
+
+    // APIにPOST
+    await ComfyAPIClientInstance.queue(this);
   }
 }
 

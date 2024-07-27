@@ -6,15 +6,13 @@ interface LoadImageBase64Inputs {
 }
 
 export class LoadImageBase64 extends InputNode {
-  static _className = 'Primitive string multiline [Crystools]';
+  static _className = 'ETN_LoadImageBase64';
 
   get inputs() {
-    return this._inputs as LoadImageBase64Inputs;
+    return super.inputs as LoadImageBase64Inputs;
   }
 
   set inputs(inputs: LoadImageBase64Inputs) {
-    // TODO: inputs[key] って外から触るとこれ動くのか？
-
     for (const key in inputs) {
       if (this._inputs[key] !== undefined) {
         if ( key === 'image' ) {
