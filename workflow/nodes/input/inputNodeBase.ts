@@ -1,3 +1,5 @@
+// すべてのInputNodeの基底クラス
+// このクラスを継承してInputNodeを作成する
 export class InputNode {
   static _className: string;
   static _inputType: string;
@@ -21,6 +23,7 @@ export class InputNode {
   }
 
   get inputs () {
+    // このメソッドは、外部からの変更を防ぐため、コピーを返す
     return JSON.parse(JSON.stringify(this._inputs));
   }
 

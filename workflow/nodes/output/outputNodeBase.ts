@@ -1,5 +1,8 @@
 import EventEmitter from "events";
+import { ComfyAPIClient } from "../../comfyui";
 
+// すべてのOutputNodeの基底クラス
+// このクラスを継承してOutputNodeを作成する
 export class OutputNode {
   static _className: string;
 
@@ -18,6 +21,7 @@ export class OutputNode {
   }
 
   get inputs () {
+    // このメソッドは、外部からの変更を防ぐため、コピーを返す
     return JSON.parse(JSON.stringify(this._inputs));
   }
 
@@ -30,35 +34,35 @@ export class OutputNode {
   }
 
   registEventsToEmitter(emitter: EventEmitter) {
-    console.error('registEventsToEmitter is not implemented');
+    new Error('registEventsToEmitter is not implemented');
   }
   
-  onProgress(comfyui:any, data: any) {
+  onProgress(comfyui: ComfyAPIClient, data: any) {
     const nodeId = data.node as string;
     if (nodeId !== this.nodeId) return;
 
     console.log('Progress:', data);
   }
 
-  onExecuting(comfyui:any, data: any) {
+  onExecuting(comfyui: ComfyAPIClient, data: any) {
     const nodeId = data.node as string;
     if (nodeId !== this.nodeId) return;
 
     console.log('Executing:', data);
   }
 
-  onExecuted(comfyui:any, data: any) {
+  onExecuted(comfyui: ComfyAPIClient, data: any) {
     const nodeId = data.node as string;
     if (nodeId !== this.nodeId) return;
 
     console.log('Executed:', data);
   }
 
-  onGetArrayBuffer(comfyui:any, data: any) {
+  onGetArrayBuffer(comfyui: ComfyAPIClient, data: any) {
     console.log('GetArrayBuffer:', data);
   }
 
-  onDisconnect(comfyui:any) {
+  onDisconnect(comfyui: ComfyAPIClient) {
   }
 
   resultType(): any {
