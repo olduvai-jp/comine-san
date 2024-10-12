@@ -10,4 +10,8 @@ export class PrimitiveStringCrystools extends InputNode {
   get inputs() {
     return super.inputs as PrimitiveStringCrystoolsInputs;
   }
+
+  set inputs(inputs: PrimitiveStringCrystoolsInputs) {
+    super.inputs = inputs;
+  }
 }

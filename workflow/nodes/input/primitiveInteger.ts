@@ -10,4 +10,9 @@ export class PrimitiveIntegerCrystools extends InputNode {
   get inputs() {
     return super.inputs as PrimitiveIntegerCrystoolsInputs;
   }
+
+  set inputs(inputs: PrimitiveIntegerCrystoolsInputs) {
+    super.inputs = inputs;
+  }
+
 }
