@@ -8,7 +8,8 @@ import { ComfyUiWorkflow } from './workflow/workflow';
 
   program
     .argument('<workflow-path>', 'path to workflow_api.json')
-    .argument('<output-json>', 'path to output json');
+    .argument('<output-json>', 'path to output json')
+    .option('--server <string>', 'server url', 'http://127.0.0.1:8188')
 
   program.parse(process.argv.slice(0, 4)); // 最初の引数(jsonpath)のみをパース
 
@@ -58,7 +59,7 @@ import { ComfyUiWorkflow } from './workflow/workflow';
 
   workflow.setWorkflowParams(options);
 
-  await workflow.execute('http://192.168.23.17:8188');
+  await workflow.execute(options.server);
   
   const results = workflow.getWorkflowResult();
 
