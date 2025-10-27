@@ -39,7 +39,7 @@ import { ComfyUiWorkflow } from './workflow/workflow';
         program.option(`--${key} <number>`, `provide a ${key}`, Number, value);
         break;
       case 'boolean':
-        program.option(`--${key} <boolean>` , `provide a ${key}`, (v) => v === 'true', value);
+        program.option(`--${key} <boolean>` , `provide a ${key}`, (v: string) => v === 'true', value);
         break;
     }
   });

@@ -64,7 +64,7 @@ export class ComfyAPIClient {
         resolve();
       });
 
-      ws.on('error', (err) => {
+      ws.on('error', (err: Error) => {
         console.log(err);
         resolve();
       });
