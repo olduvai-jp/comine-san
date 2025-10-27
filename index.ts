@@ -5,11 +5,16 @@ import { ComfyUiWorkflow } from './workflow/workflow';
 // main関数
 ;(async () => {
   const program = new Command('comine-san');
+  program.showHelpAfterError();
 
   program
     .argument('<workflow-path>', 'path to workflow_api.json')
     .argument('<output-json>', 'path to output json')
     .option('--server <string>', 'server url', 'http://127.0.0.1:8188')
+
+  if (process.argv.length <= 2) {
+    program.help({ error: false });
+  }
 
   program.parse(process.argv.slice(0, 4)); // 最初の引数(jsonpath)のみをパース
 
