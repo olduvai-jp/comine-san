@@ -56,6 +56,7 @@ yarn ts-node index.ts ./workflow_api.json ./results.json --help
 - **Input** `Primitive float [Crystools]`（ガイダンススケールなどの小数入力）
 - **Input** `ETN_LoadImageBase64`（ファイルパス/既存の Base64 文字列から画像を読込）
 - **Output** `SaveImage`（画像をファイルに保存しパスを返却）
+- **Output** `SaveAnimatedWEBP`（アニメーションWebPをファイルに保存しパスを返却）
 - **Output** `Show any to JSON [Crystools]`（任意の値を JSON テキストとして取得）
 - **Output** `ShowText|pysssss`（テキスト出力を改行付き文字列として取得）
 

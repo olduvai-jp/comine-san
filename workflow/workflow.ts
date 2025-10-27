@@ -7,6 +7,7 @@ import { PrimitiveFloatCrystools } from './nodes/input/primitiveFloat';
 
 import { OutputNode } from './nodes/output/outputNodeBase';
 import { SaveImage } from './nodes/output/saveImage';
+import { SaveAnimatedWEBP } from './nodes/output/saveAnimatedWebp';
 import { ShowAnyToJson } from './nodes/output/showAnyToJson';
 import { LoadImageBase64 } from './nodes/input/loadImageBase64';
 import { ShowTextPysssss } from './nodes/output/showText';
@@ -20,6 +21,7 @@ const inputNodeClasses = [
 
 const outputNodeClasses = [
   SaveImage,
+  SaveAnimatedWEBP,
   ShowAnyToJson,
   ShowTextPysssss
 ];
