@@ -20,7 +20,15 @@ yarn install
 ## 使い方
 1. ComfyUI から対象フローを `workflow_api.json` としてエクスポートする。
 2. ComfyUI サーバーを起動する（例: `python main.py --listen 0.0.0.0 --port 8188`）。
-3. 下記のようにコマンドを実行する。
+3. 下記のように `--help` を実行し、利用可能なオプションを確認する。
+
+```shell
+yarn ts-node index.ts ./path/to/workflow_api.json --help
+```
+
+`Result types` として、取得できる出力ノードとフィールド型が末尾に表示されます。
+
+4. 必要なオプションを確認したら、実際の実行コマンドを組み立てて実行する。
 
 ```shell
 yarn ts-node index.ts ./path/to/workflow_api.json \
@@ -36,15 +44,6 @@ yarn ts-node index.ts ./path/to/workflow_api.json \
 - その他のオプションは、ComfyUI 上で設定したノードタイトル（英数字・`_-` に正規化）と入力キーを組み合わせた形式で自動生成される
 
 > 例: ComfyUI のノードタイトルが `Prompt Text`、入力キーが `string` の場合、CLI オプションは `--Prompt_Text.string` になります。
-
-### パラメータの確認
-利用可能なオプションは `--help` で確認できます。
-
-```shell
-yarn ts-node index.ts ./workflow_api.json --help
-```
-
-コマンドの出力末尾には、取得できる出力ノードとフィールド型が `Result types` として表示されます。
 
 ### 実行結果
 - 画像出力ノード (`SaveImage`) は指定したパスに画像ファイルを保存します。
