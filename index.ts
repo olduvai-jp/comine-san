@@ -9,19 +9,18 @@ import { ComfyUiWorkflow } from './workflow/workflow';
 
   program
     .argument('<workflow-path>', 'path to workflow_api.json')
-    .argument('<output-json>', 'path to output json')
     .option('--server <string>', 'server url', 'http://127.0.0.1:8188')
+    .option('--output-json <string>', 'path to output json', 'metadata.json')
 
   if (process.argv.length <= 2) {
     program.help({ error: false });
   }
 
-  program.parse(process.argv.slice(0, 4)); // 最初の引数(jsonpath)のみをパース
-
-  const jsonFilePath = program.args[0];
+  const parsedArgs = program.parseOptions(process.argv.slice(2));
+  const jsonFilePath = parsedArgs.operands[0];
 
   if (!jsonFilePath) {
-    program.help();
+    program.help({ error: false });
   }
 
   // Workflowを読み込み
@@ -55,10 +54,6 @@ import { ComfyUiWorkflow } from './workflow/workflow';
 
   program.parse(process.argv);
 
-  if (process.argv.length <= 3) {
-    program.help();
-  }
-
   // パラメータをWorkflowにセット
   const options = program.opts();
 
@@ -68,7 +63,7 @@ import { ComfyUiWorkflow } from './workflow/workflow';
   
   const results = workflow.getWorkflowResult();
 
-  const outputJsonPath = program.args[1];
+  const outputJsonPath = options.outputJson;
   fs.writeFileSync(outputJsonPath, JSON.stringify(results, null, 2));
   console.log(`Output json saved to ${outputJsonPath}`);
 
