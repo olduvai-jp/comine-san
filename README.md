@@ -50,6 +50,14 @@ yarn ts-node index.ts ./workflow_api.json ./results.json --help
 - テキスト出力ノード (`ShowText|pysssss`, `Show any to JSON [Crystools]`) は JSON の `text` フィールドに格納されます。
 - CLI の第 2 引数に指定した JSON ファイルには、各出力ノードの結果が連想配列形式でまとめられます。
 
+### 対応ノード
+- **Input** `Primitive string multiline [Crystools]`（文字列のプロンプトなど）
+- **Input** `Primitive integer [Crystools]`（シード値などの整数入力）
+- **Input** `ETN_LoadImageBase64`（ファイルパス/既存の Base64 文字列から画像を読込）
+- **Output** `SaveImage`（画像をファイルに保存しパスを返却）
+- **Output** `Show any to JSON [Crystools]`（任意の値を JSON テキストとして取得）
+- **Output** `ShowText|pysssss`（テキスト出力を改行付き文字列として取得）
+
 ## 開発メモ
 - 型チェック: `yarn type-check`
 - ノード固有の実装は `workflow/nodes/` 配下にまとまっています。必要に応じて新しい Input / Output ノードクラスを追加してください。
