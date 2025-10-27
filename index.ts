@@ -1,101 +1,75 @@
 import * as fs from 'fs';
-import { program } from 'commander';
-import * as comfy from "./comfyui";
-import { outputNodeTargetList, OutputNode } from "./outputNode";
-import { inputNodeTargetList } from "./inputNode";
+import { Command } from 'commander';
+import { ComfyUiWorkflow } from './workflow/workflow';
 
+// main関数
+;(async () => {
+  const program = new Command('comine-san');
+  program.showHelpAfterError();
 
-interface ComfyReplaceNodeData {
-  optionName: string;
-  type: string;
-  nodeNumber: string;
-}
+  program
+    .argument('<workflow-path>', 'path to workflow_api.json')
+    .argument('<output-json>', 'path to output json')
+    .option('--server <string>', 'server url', 'http://127.0.0.1:8188')
 
-const parseBoolean =(booleanStr: string): boolean => {
-  return booleanStr.toLowerCase() === "true";
-}
-
-
-
-async function main() {
-
-  // workflow.json の読み込み
-  const jsonFilePath = process.argv[2];
-  const workflow = JSON.parse(fs.readFileSync(jsonFilePath, 'utf8'));
-
-  // 置換するnodeのリスト
-  const replaceinputNodeTargetList: ComfyReplaceNodeData[] = []
-
-  const outputNodeDict: { [key: string]: OutputNode } = {}
-
-  // workflow内のinput nodeを取得
-  Object.keys(workflow).forEach((nodeNumber) => {
-    const inputNode = inputNodeTargetList.find( (inputNode) => inputNode.class_type === workflow[nodeNumber].class_type)
-    const outputNode = outputNodeTargetList.find( (outputNode) => outputNode.title === workflow[nodeNumber]._meta.title)
-
-    if( outputNode !== undefined ) {
-
-      const optionName: string = workflow[nodeNumber]._meta.title.replace(" ", "_")
-      const explanation: string = "save path"
-
-      outputNodeDict[nodeNumber] = {
-          title: optionName,
-          save: outputNode.save
-        }
-
-      program.option(`--${optionName} <string>`, explanation)
-    }
-
-    if( inputNode !== undefined ) {
-
-      const optionName: string = workflow[nodeNumber]._meta.title
-      const type: string = inputNode.input_type
-      const explanation: string = inputNode.class_type
-
-      // 置換するnodeのnodeNumberとoptionName, typeをリストに追加
-      // optionNameはオプション名に利用
-      // nodeNumber, typeはnodeに代入するときのキーに利用
-      replaceinputNodeTargetList.push({
-        optionName: optionName,
-        type: type,
-        nodeNumber: nodeNumber
-      });
-
-      // オプションの追加、string以外は型に合わせて変換
-      if(type === "string") {
-        program.option(`--${optionName} <${type}>`, explanation)
-      } else if(type === "int") {
-        program.option(`--${optionName} <${type}>`, explanation, parseInt)
-      } else if(type === "float") {
-        program.option(`--${optionName} <${type}>`, explanation, parseFloat)
-      } else if(type === "boolean") {
-        program.option(`--${optionName} <${type}>`, explanation, parseBoolean)
-      }
-    }
-  })
-
-  // オプションの解析
-  program.parse()
-  const options = program.opts()
-
-  // 置換
-  for(const comfyReplaceNode of replaceinputNodeTargetList) {
-    const value = options[comfyReplaceNode.optionName]
-
-    if( value !== undefined ) {
-      workflow[comfyReplaceNode.nodeNumber].inputs[comfyReplaceNode.type] = value
-      
-      console.log(workflow[comfyReplaceNode.nodeNumber])
-      console.log(typeof value)
-    }
+  if (process.argv.length <= 2) {
+    program.help({ error: false });
   }
 
-  // workflowをapiになげる
-  comfy.queue("http://192.168.0.55:8188", workflow, outputNodeDict)
-}
+  program.parse(process.argv.slice(0, 4)); // 最初の引数(jsonpath)のみをパース
 
+  const jsonFilePath = program.args[0];
 
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+  if (!jsonFilePath) {
+    program.help();
+  }
+
+  // Workflowを読み込み
+  if (!fs.existsSync(jsonFilePath)) {
+    console.error(`File not found: ${jsonFilePath}`);
+    process.exit(1);
+  }
+
+  const workflow = new ComfyUiWorkflow(JSON.parse(fs.readFileSync(jsonFilePath, 'utf8')));
+  const wfParams = workflow.getWorkflowParams();
+
+  // Workflowのパラメータをコマンドオプションとして追加
+  Object.entries(wfParams).forEach(([key, value]) => {
+    //console.log(`Adding option: --${key} <${typeof value}>, default ${value}`);
+    switch (typeof value) {
+      case 'string':
+        program.option(`--${key} <string>`, `provide a ${key}`, value);
+        break;
+      case 'number':
+        program.option(`--${key} <number>`, `provide a ${key}`, Number, value);
+        break;
+      case 'boolean':
+        program.option(`--${key} <boolean>` , `provide a ${key}`, (v: string) => v === 'true', value);
+        break;
+    }
+  });
+
+  // 出力形式をhelpに追加
+  const resultTypes = workflow.getWorkflowResultTypes();
+  program.addHelpText('after', '\nResult types:\n' + JSON.stringify(resultTypes, null, 2));
+
+  program.parse(process.argv);
+
+  if (process.argv.length <= 3) {
+    program.help();
+  }
+
+  // パラメータをWorkflowにセット
+  const options = program.opts();
+
+  workflow.setWorkflowParams(options);
+
+  await workflow.execute(options.server);
+  
+  const results = workflow.getWorkflowResult();
+
+  const outputJsonPath = program.args[1];
+  fs.writeFileSync(outputJsonPath, JSON.stringify(results, null, 2));
+  console.log(`Output json saved to ${outputJsonPath}`);
+
+})();
