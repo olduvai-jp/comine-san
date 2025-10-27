@@ -5,6 +5,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "start": "ts-node index.ts",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
