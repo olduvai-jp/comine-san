@@ -107,6 +107,10 @@ export class ComfyAPIClient {
               break;
             case 'crystools.monitor':
               break;
+            case 'progress_state':
+              break;
+            case 'execution_success':
+              break;
             default:
               console.log('Unknown message type');
               console.log(message);
