@@ -3,6 +3,7 @@ import { ComfyAPIClient } from './comfyui';
 import { InputNode } from './nodes/input/inputNodeBase';
 import { PrimitiveStringCrystools } from './nodes/input/primitiveString';
 import { PrimitiveIntegerCrystools } from './nodes/input/primitiveInteger';
+import { PrimitiveFloatCrystools } from './nodes/input/primitiveFloat';
 
 import { OutputNode } from './nodes/output/outputNodeBase';
 import { SaveImage } from './nodes/output/saveImage';
@@ -13,6 +14,7 @@ import { ShowTextPysssss } from './nodes/output/showText';
 const inputNodeClasses = [
   PrimitiveStringCrystools,
   PrimitiveIntegerCrystools,
+  PrimitiveFloatCrystools,
   LoadImageBase64
 ];
 
