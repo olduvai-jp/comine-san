@@ -2,8 +2,8 @@
   "name": "comine-san",
   "version": "1.0.0",
   "description": "run comfy-ui on the command line",
-  "main": "dist/lib/index.js",
-  "types": "dist/lib/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "comine-san": "dist/cli/index.js"
   },
