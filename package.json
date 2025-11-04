@@ -5,17 +5,18 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node index.ts",
+    "start": "ts-node src/cli/index.ts",
     "type-check": "tsc --noEmit"
   },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "ws": "^8.17.0"
+  },
   "devDependencies": {
-    "@types/commander": "^2.12.2",
     "@types/node": "^20.14.0",
     "@types/ws": "^8.5.10",
-    "commander": "^12.1.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.4.5",
-    "ws": "^8.17.0"
+    "typescript": "^5.4.5"
   }
 }
