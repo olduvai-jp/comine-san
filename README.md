@@ -23,7 +23,7 @@ yarn install
 3. 下記のように `--help` を実行し、利用可能なオプションを確認する。
 
 ```shell
-yarn ts-node index.ts ./path/to/workflow_api.json --help
+yarn start ./path/to/workflow_api.json --help
 ```
 
 `Result types` として、取得できる出力ノードとフィールド型が末尾に表示されます。
@@ -31,7 +31,7 @@ yarn ts-node index.ts ./path/to/workflow_api.json --help
 4. 必要なオプションを確認したら、実際の実行コマンドを組み立てて実行する。
 
 ```shell
-yarn ts-node index.ts ./path/to/workflow_api.json \
+yarn start ./path/to/workflow_api.json \
   --output-json ./results/output.json \
   --server http://127.0.0.1:8188 \
   --Prompt_Text.string "test prompt" \
@@ -59,6 +59,10 @@ yarn ts-node index.ts ./path/to/workflow_api.json \
 - **Output** `SaveAnimatedWEBP`（アニメーションWebPをファイルに保存しパスを返却）
 - **Output** `Show any to JSON [Crystools]`（任意の値を JSON テキストとして取得）
 - **Output** `ShowText|pysssss`（テキスト出力を改行付き文字列として取得）
+
+## ドキュメント
+- CLI の詳細な利用手順は `docs/cli-guide.md`（ドラフト）を参照してください。
+- ライブラリ API の使い方は `docs/library-guide.md`（ドラフト）で概要をまとめています。
 
 ## 開発メモ
 - 型チェック: `yarn type-check`

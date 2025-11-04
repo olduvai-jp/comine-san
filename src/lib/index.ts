@@ -1,5 +1,14 @@
-export { ComfyUiWorkflow } from './workflow/workflow';
-export { ComfyAPIClient } from './workflow/comfyui';
+export {
+  ComfyUiWorkflow,
+  type ComfyUiWorkflowJson,
+  type ComfyUiNode,
+  type WorkflowParams,
+  type WorkflowParameterValue,
+  type WorkflowResults,
+  type WorkflowResultTypes
+} from './workflow/workflow';
+
+export { ComfyAPIClient, type ViewQuery } from './workflow/comfyui';
 
 export { InputNode } from './workflow/nodes/input/inputNodeBase';
 export { OutputNode } from './workflow/nodes/output/outputNodeBase';

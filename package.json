@@ -7,6 +7,61 @@
   "bin": {
     "comine-san": "dist/cli/index.js"
   },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./lib": {
+      "types": "./dist/lib/index.d.ts",
+      "require": "./dist/lib/index.js",
+      "import": "./dist/lib/index.js"
+    },
+    "./workflow": {
+      "types": "./dist/lib/workflow/workflow.d.ts",
+      "require": "./dist/lib/workflow/workflow.js",
+      "import": "./dist/lib/workflow/workflow.js"
+    },
+    "./workflow/*": {
+      "types": "./dist/lib/workflow/*.d.ts",
+      "require": "./dist/lib/workflow/*.js",
+      "import": "./dist/lib/workflow/*.js"
+    },
+    "./nodes/*": {
+      "types": "./dist/lib/workflow/nodes/*.d.ts",
+      "require": "./dist/lib/workflow/nodes/*.js",
+      "import": "./dist/lib/workflow/nodes/*.js"
+    },
+    "./cli": {
+      "types": "./dist/cli/index.d.ts",
+      "require": "./dist/cli/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/index.d.ts"
+      ],
+      "lib": [
+        "dist/lib/index.d.ts"
+      ],
+      "workflow": [
+        "dist/lib/workflow/workflow.d.ts"
+      ],
+      "workflow/*": [
+        "dist/lib/workflow/*.d.ts"
+      ],
+      "nodes/*": [
+        "dist/lib/workflow/nodes/*.d.ts"
+      ],
+      "cli": [
+        "dist/cli/index.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist",
     "docs",

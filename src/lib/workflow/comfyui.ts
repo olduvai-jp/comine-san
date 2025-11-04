@@ -2,7 +2,7 @@ import { WebSocket } from 'ws';
 import * as crypto from 'crypto';
 import { ComfyUiWorkflow } from './workflow';
 
-interface ViewQuery {
+export interface ViewQuery {
   filename?: string;
   type?: string;
   subfolder?: string;
