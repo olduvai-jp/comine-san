@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import * as fs from 'fs';
 import { Command } from 'commander';
 import { ComfyUiWorkflow } from '../lib';

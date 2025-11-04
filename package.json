@@ -2,11 +2,22 @@
   "name": "comine-san",
   "version": "1.0.0",
   "description": "run comfy-ui on the command line",
-  "main": "index.js",
+  "main": "dist/lib/index.js",
+  "types": "dist/lib/index.d.ts",
+  "bin": {
+    "comine-san": "dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "README.md"
+  ],
   "license": "MIT",
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "start": "ts-node src/cli/index.ts",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "commander": "^12.1.0",
