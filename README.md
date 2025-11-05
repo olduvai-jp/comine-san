@@ -64,6 +64,24 @@ yarn start ./path/to/workflow_api.json \
 - CLI の詳細な利用手順は `docs/cli-guide.md`（ドラフト）を参照してください。
 - ライブラリ API の使い方は `docs/library-guide.md`（ドラフト）で概要をまとめています。
 
+## ライブラリ利用のヒント
+```ts
+// CommonJS
+const { ComfyUiWorkflow } = require('comine-san');
+
+// ES Modules (tree-shakeable)
+import { ComfyUiWorkflow } from 'comine-san';
+
+// サブパス例
+import { ComfyAPIClient } from 'comine-san/lib';
+import { PrimitiveStringCrystools } from 'comine-san/nodes/input/primitiveString';
+```
+
+- CLI 実行ロジックに直接アクセスする場合は `comine-san/cli` を import してください（`npx` 利用時は不要）。
+- `exports` フィールド経由で CJS/ESM のいずれにも最適化された `dist/cjs` / `dist/esm` を提供しているため、バンドラー経由で `runCli` など未使用コードを除去できます。
+
 ## 開発メモ
 - 型チェック: `yarn type-check`
+- ビルド: `yarn build`（`dist/cjs` と `dist/esm` を生成）
+- CI: `.github/workflows/ci.yml` で Node.js 20 上の `yarn type-check` / `yarn build` を実行
 - ノード固有の実装は `workflow/nodes/` 配下にまとまっています。必要に応じて新しい Input / Output ノードクラスを追加してください。
