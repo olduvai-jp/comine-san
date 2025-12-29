@@ -2,7 +2,7 @@ import { WebSocket } from 'ws';
 import * as crypto from 'crypto';
 import { ComfyUiWorkflow } from './workflow';
 
-interface ViewQuery {
+export interface ViewQuery {
   filename?: string;
   type?: string;
   subfolder?: string;
@@ -12,7 +12,7 @@ export class ComfyAPIClient {
   private _url: string;
 
   constructor(url: string) {
-    this._url = url;
+    this._url = url.replace(/\/+$/, '');
   }
 
   private get wsUrl(): string {
@@ -49,11 +49,24 @@ export class ComfyAPIClient {
       }),
     });
 
-    const json = await res.json();
+    const rawBody = await res.text();
+    let json: any = {};
 
-    if (res.status !== 200) {
-      console.log(json);
-      throw new Error(JSON.stringify(json));
+    if (rawBody.length > 0) {
+      try {
+        json = JSON.parse(rawBody);
+      } catch (error) {
+        const snippet = rawBody.slice(0, 200).replace(/\s+/g, " ").trim();
+        throw new Error(
+          `Failed to parse ComfyUI response (status ${res.status} ${res.statusText}): ${snippet || '[empty body]'}`
+        );
+      }
+    }
+
+    if (!res.ok) {
+      throw new Error(
+        `ComfyUI server error ${res.status} ${res.statusText}: ${JSON.stringify(json)}`
+      );
     }
 
     //console.log(res.status);
@@ -64,7 +77,7 @@ export class ComfyAPIClient {
         resolve();
       });
 
-      ws.on('error', (err) => {
+      ws.on('error', (err: Error) => {
         console.log(err);
         resolve();
       });
@@ -93,6 +106,10 @@ export class ComfyAPIClient {
             case 'execution_cached':
               break;
             case 'crystools.monitor':
+              break;
+            case 'progress_state':
+              break;
+            case 'execution_success':
               break;
             default:
               console.log('Unknown message type');

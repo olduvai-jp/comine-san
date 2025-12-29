@@ -3,9 +3,11 @@ import { ComfyAPIClient } from './comfyui';
 import { InputNode } from './nodes/input/inputNodeBase';
 import { PrimitiveStringCrystools } from './nodes/input/primitiveString';
 import { PrimitiveIntegerCrystools } from './nodes/input/primitiveInteger';
+import { PrimitiveFloatCrystools } from './nodes/input/primitiveFloat';
 
 import { OutputNode } from './nodes/output/outputNodeBase';
 import { SaveImage } from './nodes/output/saveImage';
+import { SaveAnimatedWEBP } from './nodes/output/saveAnimatedWebp';
 import { ShowAnyToJson } from './nodes/output/showAnyToJson';
 import { LoadImageBase64 } from './nodes/input/loadImageBase64';
 import { ShowTextPysssss } from './nodes/output/showText';
@@ -13,22 +15,22 @@ import { ShowTextPysssss } from './nodes/output/showText';
 const inputNodeClasses = [
   PrimitiveStringCrystools,
   PrimitiveIntegerCrystools,
+  PrimitiveFloatCrystools,
   LoadImageBase64
 ];
 
 const outputNodeClasses = [
   SaveImage,
+  SaveAnimatedWEBP,
   ShowAnyToJson,
   ShowTextPysssss
 ];
 
-// interfaces
-
-interface ComfuUIWorkflowJson {
-  [nodeId: string]: ComfyUINode;
+export interface ComfyUiWorkflowJson {
+  [nodeId: string]: ComfyUiNode;
 }
 
-interface ComfyUINode {
+export interface ComfyUiNode {
   class_type: string;
   inputs: any;
   _meta: {
@@ -36,9 +38,14 @@ interface ComfyUINode {
   };
 }
 
+export type WorkflowParameterValue = string | number | boolean | null | undefined | Record<string, unknown> | Array<unknown>;
+export type WorkflowParams = Record<string, WorkflowParameterValue>;
+export type WorkflowResultTypes = Record<string, string>;
+export type WorkflowResults = Record<string, unknown>;
+
 export class ComfyUiWorkflow {
   // 入力されたworkflowのjson全文
-  private workflowJson: ComfuUIWorkflowJson;
+  private workflowJson: ComfyUiWorkflowJson;
 
   // インスタンス
   inputNodeInstances: InputNode[] = [];
@@ -46,8 +53,8 @@ export class ComfyUiWorkflow {
 
   outputEmitter = new EventEmitter();
 
-  getWorkflowParams() {
-    const params: { [key: string]: any } = {};
+  getWorkflowParams(): WorkflowParams {
+    const params: WorkflowParams = {};
 
     // inputノードの入力を取得
     for(const inputNodeInstance of this.inputNodeInstances) {
@@ -74,7 +81,7 @@ export class ComfyUiWorkflow {
     return params;
   }
 
-  setWorkflowParams(params: { [key: string]: any }) {
+  setWorkflowParams(params: WorkflowParams) {
 
     // inputノードの入力を上書き
     for(const inputNodeInstance of this.inputNodeInstances) {
@@ -107,8 +114,8 @@ export class ComfyUiWorkflow {
     }
   }
 
-  getWorkflowResultTypes() {
-    const resultTypes: { [key: string]: string } = {};
+  getWorkflowResultTypes(): WorkflowResultTypes {
+    const resultTypes: WorkflowResultTypes = {};
 
     for(const outputNodeInstance of this.outputNodeInstances) {
       const title = outputNodeInstance.title;
@@ -119,8 +126,8 @@ export class ComfyUiWorkflow {
     return resultTypes;
   }
 
-  getWorkflowResult() {
-    const results: { [key: string]: any } = {};
+  getWorkflowResult(): WorkflowResults {
+    const results: WorkflowResults = {};
     for(const outputNodeInstance of this.outputNodeInstances) {
       const title = outputNodeInstance.title;
       const result = outputNodeInstance.result();
@@ -130,7 +137,7 @@ export class ComfyUiWorkflow {
     return results;
   }
 
-  constructor(workflowJson: ComfuUIWorkflowJson) {
+  constructor(workflowJson: ComfyUiWorkflowJson) {
     this.workflowJson = workflowJson;
     
     // Node毎に回す
@@ -166,7 +173,7 @@ export class ComfyUiWorkflow {
   }
 
   // パラメーター上書き済みのJSONを返す(POST /prompt 用)
-  getModifiedJson() {
+  getModifiedJson(): ComfyUiWorkflowJson {
     const modifiedJson = JSON.parse(JSON.stringify(this.workflowJson)); // deep copy
 
     // inputノードの入力をJSONに反映
@@ -182,7 +189,7 @@ export class ComfyUiWorkflow {
     return modifiedJson;
   }
 
-  async execute(hostUrl: string) {
+  async execute(hostUrl: string): Promise<void> {
     const ComfyAPIClientInstance = new ComfyAPIClient(hostUrl);
 
     // パラメーター上書き済みのJSONを取得

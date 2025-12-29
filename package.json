@@ -2,16 +2,89 @@
   "name": "comine-san",
   "version": "1.0.0",
   "description": "run comfy-ui on the command line",
-  "main": "index.js",
+  "main": "dist/cjs/index.js",
+  "types": "dist/types/index.d.ts",
+  "bin": {
+    "comine-san": "dist/cjs/cli/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.mjs"
+    },
+    "./lib": {
+      "types": "./dist/types/lib/index.d.ts",
+      "require": "./dist/cjs/lib/index.js",
+      "import": "./dist/esm/lib/index.mjs"
+    },
+    "./workflow": {
+      "types": "./dist/types/lib/workflow/workflow.d.ts",
+      "require": "./dist/cjs/lib/workflow/workflow.js",
+      "import": "./dist/esm/lib/workflow/workflow.mjs"
+    },
+    "./workflow/*": {
+      "types": "./dist/types/lib/workflow/*.d.ts",
+      "require": "./dist/cjs/lib/workflow/*.js",
+      "import": "./dist/esm/lib/workflow/*.mjs"
+    },
+    "./nodes/*": {
+      "types": "./dist/types/lib/workflow/nodes/*.d.ts",
+      "require": "./dist/cjs/lib/workflow/nodes/*.js",
+      "import": "./dist/esm/lib/workflow/nodes/*.mjs"
+    },
+    "./cli": {
+      "types": "./dist/types/cli/index.d.ts",
+      "require": "./dist/cjs/cli/index.js",
+      "import": "./dist/esm/cli/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/types/index.d.ts"
+      ],
+      "lib": [
+        "dist/types/lib/index.d.ts"
+      ],
+      "workflow": [
+        "dist/types/lib/workflow/workflow.d.ts"
+      ],
+      "workflow/*": [
+        "dist/types/lib/workflow/*.d.ts"
+      ],
+      "nodes/*": [
+        "dist/types/lib/workflow/nodes/*.d.ts"
+      ],
+      "cli": [
+        "dist/types/cli/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "docs",
+    "README.md"
+  ],
   "license": "MIT",
+  "scripts": {
+    "build": "rimraf dist && tsc -p tsconfig.cjs.json && node scripts/build-esm.mjs",
+    "start": "ts-node src/cli/index.ts",
+    "type-check": "tsc --noEmit",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "ws": "^8.17.0"
+  },
   "devDependencies": {
-    "@types/commander": "^2.12.2",
     "@types/node": "^20.14.0",
     "@types/ws": "^8.5.10",
-    "commander": "^12.1.0",
+    "rimraf": "^5.0.10",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.4.5",
-    "ws": "^8.17.0"
+    "typescript": "^5.4.5"
   }
 }
