@@ -11,12 +11,14 @@ import { SaveAnimatedWEBP } from './nodes/output/saveAnimatedWebp';
 import { ShowAnyToJson } from './nodes/output/showAnyToJson';
 import { LoadImageBase64 } from './nodes/input/loadImageBase64';
 import { ShowTextPysssss } from './nodes/output/showText';
+import { LoadImage } from './nodes/input/loadImage';
 
 const inputNodeClasses = [
   PrimitiveStringCrystools,
   PrimitiveIntegerCrystools,
   PrimitiveFloatCrystools,
-  LoadImageBase64
+  LoadImageBase64,
+  LoadImage,
 ];
 
 const outputNodeClasses = [
@@ -192,8 +194,12 @@ export class ComfyUiWorkflow {
   async execute(hostUrl: string): Promise<void> {
     const ComfyAPIClientInstance = new ComfyAPIClient(hostUrl);
 
-    // パラメーター上書き済みのJSONを取得
-    const modifiedJson = this.getModifiedJson();
+    // 実行前に必要な前処理（アップロードなど）を各入力ノードに委譲
+    for (const inputNodeInstance of this.inputNodeInstances) {
+      if (typeof inputNodeInstance.prepare === 'function') {
+        await inputNodeInstance.prepare(ComfyAPIClientInstance);
+      }
+    }
 
     // APIにPOST
     await ComfyAPIClientInstance.queue(this);

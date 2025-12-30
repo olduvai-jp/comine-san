@@ -8,11 +8,11 @@ export class PrimitiveIntegerCrystools extends InputNode {
   static _className = 'Primitive integer [Crystools]';
 
   get inputs() {
-    return super.inputs as PrimitiveIntegerCrystoolsInputs;
+    return JSON.parse(JSON.stringify(this._inputs)) as PrimitiveIntegerCrystoolsInputs;
   }
 
   set inputs(inputs: PrimitiveIntegerCrystoolsInputs) {
-    super.inputs = inputs;
+    this._inputs = inputs;
   }
 
 }

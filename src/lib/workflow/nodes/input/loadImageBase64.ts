@@ -9,7 +9,7 @@ export class LoadImageBase64 extends InputNode {
   static _className = 'ETN_LoadImageBase64';
 
   get inputs() {
-    return super.inputs as LoadImageBase64Inputs;
+    return JSON.parse(JSON.stringify(this._inputs)) as LoadImageBase64Inputs;
   }
 
   set inputs(inputs: LoadImageBase64Inputs) {

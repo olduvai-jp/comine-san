@@ -1,11 +1,19 @@
 import { WebSocket } from 'ws';
 import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
 import { ComfyUiWorkflow } from './workflow';
 
 export interface ViewQuery {
   filename?: string;
   type?: string;
   subfolder?: string;
+}
+
+export interface UploadImageResponse {
+  name: string;
+  subfolder: string;
+  type: string;
 }
 
 export class ComfyAPIClient {
@@ -29,6 +37,48 @@ export class ComfyAPIClient {
     // console.log(url);
     const res = await fetch(url);
     return Buffer.from(await res.arrayBuffer());
+  }
+
+  async uploadImage(
+    filePath: string,
+    options: { type?: string; subfolder?: string; overwrite?: boolean } = {}
+  ): Promise<UploadImageResponse> {
+    const resolvedPath = path.resolve(filePath);
+    await fs.promises.access(resolvedPath, fs.constants.R_OK);
+
+    const formData = new FormData();
+    const fileBuffer = await fs.promises.readFile(resolvedPath);
+    formData.append('image', new Blob([fileBuffer]), path.basename(resolvedPath));
+    if (options.type) formData.append('type', options.type);
+    if (options.subfolder) formData.append('subfolder', options.subfolder);
+    if (options.overwrite) formData.append('overwrite', 'true');
+
+    const res = await fetch(`${this.url}/upload/image`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const rawBody = await res.text();
+    let json: any = {};
+
+    if (rawBody.length > 0) {
+      try {
+        json = JSON.parse(rawBody);
+      } catch (error) {
+        const snippet = rawBody.slice(0, 200).replace(/\s+/g, ' ').trim();
+        throw new Error(
+          `Failed to parse ComfyUI upload response (status ${res.status} ${res.statusText}): ${snippet || '[empty body]'}`
+        );
+      }
+    }
+
+    if (!res.ok) {
+      throw new Error(
+        `ComfyUI upload error ${res.status} ${res.statusText}: ${JSON.stringify(json)}`
+      );
+    }
+
+    return json as UploadImageResponse;
   }
 
   async queue(workflow: ComfyUiWorkflow): Promise<void> {
