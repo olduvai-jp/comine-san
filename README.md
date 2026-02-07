@@ -68,8 +68,8 @@ yarn start ./path/to/workflow_api.json \
 
 ## ドキュメント
 
-- CLI の詳細な利用手順は `docs/cli-guide.md`（ドラフト）を参照してください。
-- ライブラリ API の使い方は `docs/library-guide.md`（ドラフト）で概要をまとめています。
+- CLI の詳細な利用手順は `docs/cli-guide.md` を参照してください。
+- ライブラリ API の使い方は `docs/library-guide.md` で概要をまとめています。
 
 ## ライブラリ利用のヒント
 

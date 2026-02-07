@@ -25,7 +25,7 @@ npx @olduvai-jp/comine-san ./workflows/workflow_api.json \
 ComfyUI サーバーに接続せず、ローカルのワークフロー JSON を読み込んで CLI オプション生成まで確認できます。
 
 ```bash
-npx @olduvai-jp/comine-san ./example/t2i_sd15.json --help
+npx @olduvai-jp/comine-san ./example/t2i_sd15_base.json --help
 ```
 
 ## インストールと実行方法
@@ -63,10 +63,10 @@ comine-san ./workflows/workflow_api.json \
 
 ### リポジトリ同梱サンプル（Smoke）
 
-このリポジトリには最小の text-to-image ワークフロー例として `example/t2i_sd15.json` を同梱しています。
+このリポジトリには最小の text-to-image ワークフロー例として `example/t2i_sd15_base.json` を同梱しています。
 
 ```bash
-comine-san ./example/t2i_sd15.json \
+comine-san ./example/t2i_sd15_base.json \
   --server http://192.168.23.17:8188 \
   --output-json ./results/metadata.json \
   --output.filename ./results/t2i.png \
