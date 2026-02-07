@@ -37,3 +37,23 @@
 ## 過去スナップショット
 
 以前のスナップショット（2025-11-10 / 2025-11-11）はドラフト時点の記録で、`tests/cli.test.ts` や `prepublishOnly` など実態と食い違う記述を含んでいました。参照が必要な場合は、必ずこの 2026-02-07 スナップショットの内容を優先してください。
+
+## 安定化・受け入れ基準（チェックリスト）
+
+`docs/cli-guide.md` と `docs/library-guide.md` の「安定化ポリシー / ドラフト卒業条件」を実際のリリース判断に使うための集約です。
+
+### CLI spec stability（受け入れ）
+
+- [x] `npm run prepublishOnly` が CI で通る（type-check / test / build）
+- [x] exit code（0/2/3/4/5/1）の意味が docs と実装で一致し、テストで担保されている
+- [x] `--quiet` / `--verbose` / stdout-stderr 契約がテストで担保されている（機械向け出力は `--quiet` のみ）
+
+### Library API stability（受け入れ）
+
+- [x] 公開 API サーフェス（`package.json#exports` で到達できる全 import path）を安定として保証する方針が確定している
+- [x] breaking change 検出の仕組み（最低限: public import コンパイルテスト）が CI に入っている
+
+### Docs（draft -> stable）
+
+- [x] `docs/cli-guide.md` / `docs/library-guide.md` のタイトルから「（ドラフト）」を外せる状態になっている
+- [x] すべてのサンプルが現行バージョンで動作し、前提条件が明記されている

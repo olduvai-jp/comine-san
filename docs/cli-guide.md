@@ -1,4 +1,4 @@
-# CLI ガイド（ドラフト）
+# CLI ガイド
 
 ## はじめに
 
@@ -19,6 +19,14 @@ npx comine-san ./workflows/workflow_api.json \
 - `--server`: ComfyUI の URL。省略時は `http://127.0.0.1:8188`。
 - `--output-json`: 実行結果（各出力ノードの戻り値）を保存するパス。省略時は `metadata.json`。
 - それ以外の `--<ノードタイトル>.<入力名>` オプションはワークフローから自動生成され、デフォルト値も `workflow_api.json` から抽出されます。
+
+### サーバー不要の動作確認（--help）
+
+ComfyUI サーバーに接続せず、ローカルのワークフロー JSON を読み込んで CLI オプション生成まで確認できます。
+
+```bash
+npx comine-san ./example/t2i_sd15.json --help
+```
 
 ## インストールと実行方法
 
@@ -96,6 +104,48 @@ comine-san ./example/t2i_sd15.json \
 | 4         | workflow JSON parse error     |
 | 5         | ComfyUI server/network error  |
 | 1         | unknown error                 |
+
+## 安定化ポリシー / ドラフト卒業条件
+
+このドキュメントに記載した CLI 仕様を「安定」として扱うための、**実行可能かつ検証可能**な条件です（現状は満たしています）。
+
+### CLI 仕様の安定化条件（CLI spec stability）
+
+- [x] **コマンド名・引数の骨格が固定**されている
+  - `comine-san <workflow-path>`（必須）
+  - ベースオプション: `--server`, `--output-json`, `--quiet`, `--verbose`, `--help/-h`
+- [x] **`--help` の契約が固定**されている
+  - `comine-san --help` は `<workflow-path>` 無しでも **exit code 0** で終了する
+  - `<workflow-path>` を与えた場合は、ワークフローから生成した `--<NodeTitle>.<InputKey>` を help に表示する
+- [x] **exit code の意味が固定**され、テストで担保されている
+  - `0`: success
+  - `2`: bad arguments（CLI の parse/指定ミス）
+  - `3`: workflow file not found
+  - `4`: workflow JSON parse error
+  - `5`: ComfyUI server/network error
+  - `1`: unknown error
+- [x] **stdout/stderr の契約が固定**されている
+  - エラーは `stderr` に出し、プロセスの `exit code` で機械判定できる
+  - **機械判定が必要な場合は `--quiet` を使う**（成功時に `stdout` へ出力 JSON パスのみ）
+  - `--quiet` 以外の `stdout` は人間向けログであり、文言は互換性の対象外（パース前提にしない）
+  - `--verbose` のイベントログは `stderr` に出す（stdout を汚さない）
+- [x] **`--quiet` / `--verbose` の契約が固定**されている
+  - `--quiet` は成功時に **出力 JSON パスのみ**を `stdout` に出す
+  - `--quiet` と `--verbose` は同時指定不可（`exit code 2`）
+- [x] **ワークフロー由来オプション生成の契約が固定**されている
+  - 生成形式: `--<NodeTitle>.<InputKey>`
+  - `NodeTitle` は `_meta.title` を正規化したもの（`[^a-zA-Z0-9_-]` を `_` に置換）
+  - `InputKey` はワークフロー JSON の `inputs` キーをそのまま用いる
+  - 型の扱い: `string` / `number` / `boolean` の入力は CLI 引数として上書き可能で、デフォルト値はワークフローから抽出される
+- [x] **`npm run prepublishOnly` が通る**（type-check / test / build）
+
+（推奨）リリース前の手動検証として `npm pack` → `npx` 実行のリハーサルを行うと、配布形での問題を早期に検出できます（ただし CI の必須条件にはしません）。
+
+### 変更ポリシー（SemVer）
+
+- **Breaking change（破壊的変更）**: 上記の契約を破る変更（exit code の意味変更、既存オプション削除/意味変更、出力の stdout/stderr 契約変更、正規化ルール変更など）は **major**。
+- **Additive change（追加）**: 互換を壊さない新オプション/新イベント/新ノード追加などは **minor**。
+- **Bugfix / docs**: 互換を壊さない修正は **patch**。
 
 ## メンテナー向け: npm pack リハーサル
 
