@@ -5,7 +5,7 @@ export {
   type WorkflowParams,
   type WorkflowParameterValue,
   type WorkflowResults,
-  type WorkflowResultTypes
+  type WorkflowResultTypes,
 } from './workflow/workflow';
 
 export { ComfyAPIClient, type ViewQuery } from './workflow/comfyui';

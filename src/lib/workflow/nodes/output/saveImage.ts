@@ -3,6 +3,7 @@ import { OutputNode } from './outputNodeBase';
 import { ComfyAPIClient } from '../../comfyui';
 import * as fs from 'fs/promises';
 import path from 'path';
+
 interface SaveImageOutputs {
   filename: string;
 }
@@ -19,9 +20,8 @@ export class SaveImage extends OutputNode {
 
     // override inputs
     this._inputs = {
-      'filename': `${this.title}.png`
-    }
-
+      filename: `${this.title}.png`,
+    };
   }
 
   registEventsToEmitter(emitter: EventEmitter): void {
@@ -33,13 +33,13 @@ export class SaveImage extends OutputNode {
     const imageBuffer = await comfyui.view({
       filename: this.filename,
       type: this.type,
-      subfolder: this.subfolder
-    })
+      subfolder: this.subfolder,
+    });
 
     const saveDir = saveFilePath.split('/').slice(0, -1).join('/');
     try {
-      await fs.mkdir(saveDir, { recursive: true});
-    } catch (e) {
+      await fs.mkdir(saveDir, { recursive: true });
+    } catch (_error) {
       // noop
     }
 
@@ -48,7 +48,7 @@ export class SaveImage extends OutputNode {
     console.log('Image saved:', saveFilePath);
   }
 
-  onExecuted(_:any, data: any): void {
+  onExecuted(_: any, data: any): void {
     const nodeId = data.node as string;
     if (nodeId !== this.nodeId) return;
 
@@ -56,19 +56,18 @@ export class SaveImage extends OutputNode {
     this.filename = image.filename;
     this.type = image.type;
     this.subfolder = image.subfolder;
-
   }
 
   onDisconnected(comfyui: ComfyAPIClient): void {
     // 実行結果の確認
     if (this.filename === '') {
       console.error('No image to save. Is the workflow cached?');
-      return
+      return;
     }
 
     // 注意：imageSaveは非同期処理なので、この関数終了時には終わっていない
     const saveFilePath = this._inputs['filename'];
-    this.imageSave(comfyui, saveFilePath);
+    void this.imageSave(comfyui, saveFilePath);
   }
 
   resultType(): SaveImageOutputs {

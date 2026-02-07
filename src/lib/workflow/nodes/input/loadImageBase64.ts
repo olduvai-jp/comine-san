@@ -2,7 +2,7 @@ import fs from 'fs';
 import { InputNode } from './inputNodeBase';
 
 interface LoadImageBase64Inputs {
-  "image": string;
+  image: string;
 }
 
 export class LoadImageBase64 extends InputNode {
@@ -15,12 +15,12 @@ export class LoadImageBase64 extends InputNode {
   set inputs(inputs: LoadImageBase64Inputs) {
     for (const key in inputs) {
       if (this._inputs[key] !== undefined) {
-        if ( key === 'image' ) {
+        if (key === 'image') {
           // base64っぽかったらそのまま入れる
           // ファイルパスっぽかったら読み込んでbase64にする
           const image = inputs[key];
 
-          if ( image.match(/^data:image\/[a-z]+;base64,/) ) {
+          if (image.match(/^data:image\/[a-z]+;base64,/)) {
             this._inputs[key] = image;
           } else {
             this._inputs[key] = fs.readFileSync(image, 'base64');

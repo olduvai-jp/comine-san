@@ -1,7 +1,7 @@
 import { InputNode } from './inputNodeBase';
 
 interface PrimitiveStringCrystoolsInputs {
-  "string": string;
+  string: string;
 }
 
 export class PrimitiveStringCrystools extends InputNode {

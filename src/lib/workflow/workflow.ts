@@ -21,12 +21,7 @@ const inputNodeClasses = [
   LoadImage,
 ];
 
-const outputNodeClasses = [
-  SaveImage,
-  SaveAnimatedWEBP,
-  ShowAnyToJson,
-  ShowTextPysssss
-];
+const outputNodeClasses = [SaveImage, SaveAnimatedWEBP, ShowAnyToJson, ShowTextPysssss];
 
 export interface ComfyUiWorkflowJson {
   [nodeId: string]: ComfyUiNode;
@@ -40,7 +35,14 @@ export interface ComfyUiNode {
   };
 }
 
-export type WorkflowParameterValue = string | number | boolean | null | undefined | Record<string, unknown> | Array<unknown>;
+export type WorkflowParameterValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | Record<string, unknown>
+  | Array<unknown>;
 export type WorkflowParams = Record<string, WorkflowParameterValue>;
 export type WorkflowResultTypes = Record<string, string>;
 export type WorkflowResults = Record<string, unknown>;
@@ -59,34 +61,33 @@ export class ComfyUiWorkflow {
     const params: WorkflowParams = {};
 
     // inputノードの入力を取得
-    for(const inputNodeInstance of this.inputNodeInstances) {
+    for (const inputNodeInstance of this.inputNodeInstances) {
       const title = inputNodeInstance.title;
       const inputs = inputNodeInstance.inputs;
 
       Object.keys(inputs).forEach((inputKey) => {
         const key = `${title}.${inputKey}`;
         params[key] = inputs[inputKey];
-      })
+      });
     }
 
     // outputノードの入力を取得
-    for(const outputNodeInstance of this.outputNodeInstances) {
+    for (const outputNodeInstance of this.outputNodeInstances) {
       const title = outputNodeInstance.title;
       const inputs = outputNodeInstance.inputs;
 
       Object.keys(inputs).forEach((inputKey) => {
         const key = `${title}.${inputKey}`;
         params[key] = inputs[inputKey];
-      })
+      });
     }
 
     return params;
   }
 
   setWorkflowParams(params: WorkflowParams) {
-
     // inputノードの入力を上書き
-    for(const inputNodeInstance of this.inputNodeInstances) {
+    for (const inputNodeInstance of this.inputNodeInstances) {
       const title = inputNodeInstance.title;
       const inputs = inputNodeInstance.inputs;
 
@@ -95,13 +96,13 @@ export class ComfyUiWorkflow {
         if (params[key] !== undefined) {
           inputs[inputKey] = params[key];
         }
-      })
+      });
 
       inputNodeInstance.inputs = inputs;
     }
 
     // outputノードの入力を上書き
-    for(const outputNodeInstance of this.outputNodeInstances) {
+    for (const outputNodeInstance of this.outputNodeInstances) {
       const title = outputNodeInstance.title;
       const inputs = outputNodeInstance.inputs;
 
@@ -110,7 +111,7 @@ export class ComfyUiWorkflow {
         if (params[key] !== undefined) {
           inputs[inputKey] = params[key];
         }
-      })
+      });
 
       outputNodeInstance.inputs = inputs;
     }
@@ -119,7 +120,7 @@ export class ComfyUiWorkflow {
   getWorkflowResultTypes(): WorkflowResultTypes {
     const resultTypes: WorkflowResultTypes = {};
 
-    for(const outputNodeInstance of this.outputNodeInstances) {
+    for (const outputNodeInstance of this.outputNodeInstances) {
       const title = outputNodeInstance.title;
       const resultType = outputNodeInstance.resultType();
       resultTypes[title] = resultType;
@@ -130,7 +131,7 @@ export class ComfyUiWorkflow {
 
   getWorkflowResult(): WorkflowResults {
     const results: WorkflowResults = {};
-    for(const outputNodeInstance of this.outputNodeInstances) {
+    for (const outputNodeInstance of this.outputNodeInstances) {
       const title = outputNodeInstance.title;
       const result = outputNodeInstance.result();
       results[title] = result;
@@ -141,7 +142,7 @@ export class ComfyUiWorkflow {
 
   constructor(workflowJson: ComfyUiWorkflowJson) {
     this.workflowJson = workflowJson;
-    
+
     // Node毎に回す
     Object.keys(workflowJson).forEach((nodeId) => {
       const node = workflowJson[nodeId];
@@ -150,7 +151,7 @@ export class ComfyUiWorkflow {
       for (const inputNodeClass of inputNodeClasses) {
         if (node.class_type == inputNodeClass.class_type) {
           // インスタンス登録
-          const inputNode:InputNode = new inputNodeClass(nodeId, node._meta.title, node.inputs);
+          const inputNode: InputNode = new inputNodeClass(nodeId, node._meta.title, node.inputs);
           this.inputNodeInstances.push(inputNode);
 
           break;
@@ -171,7 +172,7 @@ export class ComfyUiWorkflow {
           break;
         }
       }
-    })
+    });
   }
 
   // パラメーター上書き済みのJSONを返す(POST /prompt 用)
@@ -179,7 +180,7 @@ export class ComfyUiWorkflow {
     const modifiedJson = JSON.parse(JSON.stringify(this.workflowJson)); // deep copy
 
     // inputノードの入力をJSONに反映
-    for(const inputNodeInstance of this.inputNodeInstances) {
+    for (const inputNodeInstance of this.inputNodeInstances) {
       const nodeId = inputNodeInstance.nodeId;
       const inputs = inputNodeInstance.inputs;
 

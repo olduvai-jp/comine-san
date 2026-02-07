@@ -24,7 +24,7 @@ export class ComfyAPIClient {
   }
 
   private get wsUrl(): string {
-    const protcol = this._url.startsWith('https') ? 'wss' : 'ws'
+    const protcol = this._url.startsWith('https') ? 'wss' : 'ws';
     return `${protcol}://${new URL(this._url).host}`;
   }
 
@@ -33,7 +33,7 @@ export class ComfyAPIClient {
   }
 
   async view(query: ViewQuery): Promise<Buffer> {
-    const url = `${this.url}/view?${new URLSearchParams(query as Record<string, string>)}`
+    const url = `${this.url}/view?${new URLSearchParams(query as Record<string, string>)}`;
     // console.log(url);
     const res = await fetch(url);
     return Buffer.from(await res.arrayBuffer());
@@ -64,7 +64,7 @@ export class ComfyAPIClient {
     if (rawBody.length > 0) {
       try {
         json = JSON.parse(rawBody);
-      } catch (error) {
+      } catch (_error) {
         const snippet = rawBody.slice(0, 200).replace(/\s+/g, ' ').trim();
         throw new Error(
           `Failed to parse ComfyUI upload response (status ${res.status} ${res.statusText}): ${snippet || '[empty body]'}`
@@ -73,25 +73,21 @@ export class ComfyAPIClient {
     }
 
     if (!res.ok) {
-      throw new Error(
-        `ComfyUI upload error ${res.status} ${res.statusText}: ${JSON.stringify(json)}`
-      );
+      throw new Error(`ComfyUI upload error ${res.status} ${res.statusText}: ${JSON.stringify(json)}`);
     }
 
     return json as UploadImageResponse;
   }
 
   async queue(workflow: ComfyUiWorkflow): Promise<void> {
-    const apiInstance = this;
-
     const uuid = crypto.randomUUID();
     const ws = new WebSocket(`${this.wsUrl}/ws?clientId=${uuid}`);
     // ws.binaryType = "arraybuffer";
 
     const res = await fetch(`${this.url}/prompt`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         prompt: workflow.getModifiedJson(),
@@ -105,8 +101,8 @@ export class ComfyAPIClient {
     if (rawBody.length > 0) {
       try {
         json = JSON.parse(rawBody);
-      } catch (error) {
-        const snippet = rawBody.slice(0, 200).replace(/\s+/g, " ").trim();
+      } catch (_error) {
+        const snippet = rawBody.slice(0, 200).replace(/\s+/g, ' ').trim();
         throw new Error(
           `Failed to parse ComfyUI response (status ${res.status} ${res.statusText}): ${snippet || '[empty body]'}`
         );
@@ -114,16 +110,14 @@ export class ComfyAPIClient {
     }
 
     if (!res.ok) {
-      throw new Error(
-        `ComfyUI server error ${res.status} ${res.statusText}: ${JSON.stringify(json)}`
-      );
+      throw new Error(`ComfyUI server error ${res.status} ${res.statusText}: ${JSON.stringify(json)}`);
     }
 
     //console.log(res.status);
 
     await new Promise<void>((resolve) => {
       ws.on('close', () => {
-        workflow.outputEmitter.emit('disconnected', apiInstance);
+        workflow.outputEmitter.emit('disconnected', this);
         resolve();
       });
 
@@ -138,16 +132,16 @@ export class ComfyAPIClient {
 
           switch (message.type) {
             case 'progress':
-              workflow.outputEmitter.emit('progress', apiInstance, message.data);
+              workflow.outputEmitter.emit('progress', this, message.data);
               break;
             case 'executing':
-              workflow.outputEmitter.emit('executing', apiInstance, message.data);
+              workflow.outputEmitter.emit('executing', this, message.data);
               if (message.data.prompt_id === (json as any).prompt_id && message.data.node == null) {
                 ws.close();
               }
               break;
             case 'executed':
-              workflow.outputEmitter.emit('executed', apiInstance, message.data);
+              workflow.outputEmitter.emit('executed', this, message.data);
               break;
             case 'status':
               break;

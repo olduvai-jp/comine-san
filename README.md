@@ -3,21 +3,25 @@
 Comine San は ComfyUI でエクスポートした `workflow_api.json` を読み込み、CLI からワークフローを実行する TypeScript 製ツールです。
 
 ## 特徴
+
 - ワークフロー内の入力/出力ノードを解析し、`--<ノードタイトル>.<入力名>` 形式の CLI オプションを自動生成
 - 指定した ComfyUI サーバーに対して `POST /prompt` を発行し、WebSocket で進行状況を監視
 - SaveImage / ShowText / Show Any to JSON などの出力をファイル保存と JSON で集約
 
 ## 必要環境
+
 - Node.js 18 以上（`fetch` API を利用）
 - Yarn もしくは npm
 - 実行中の ComfyUI サーバー（デフォルトは `http://127.0.0.1:8188`）
 
 ## セットアップ
+
 ```shell
 yarn install
 ```
 
 ## 使い方
+
 1. ComfyUI から対象フローを `workflow_api.json` としてエクスポートする。
 2. ComfyUI サーバーを起動する（例: `python main.py --listen 0.0.0.0 --port 8188`）。
 3. 下記のように `--help` を実行し、利用可能なオプションを確認する。
@@ -46,11 +50,13 @@ yarn start ./path/to/workflow_api.json \
 > 例: ComfyUI のノードタイトルが `Prompt Text`、入力キーが `string` の場合、CLI オプションは `--Prompt_Text.string` になります。
 
 ### 実行結果
+
 - 画像出力ノード (`SaveImage`) は指定したパスに画像ファイルを保存します。
 - テキスト出力ノード (`ShowText|pysssss`, `Show any to JSON [Crystools]`) は JSON の `text` フィールドに格納されます。
 - CLI の `--output-json` オプションで指定した JSON ファイルには、各出力ノードの結果が連想配列形式でまとめられます。
 
 ### 対応ノード
+
 - **Input** `Primitive string multiline [Crystools]`（文字列のプロンプトなど）
 - **Input** `Primitive integer [Crystools]`（シード値などの整数入力）
 - **Input** `Primitive float [Crystools]`（ガイダンススケールなどの小数入力）
@@ -61,10 +67,12 @@ yarn start ./path/to/workflow_api.json \
 - **Output** `ShowText|pysssss`（テキスト出力を改行付き文字列として取得）
 
 ## ドキュメント
+
 - CLI の詳細な利用手順は `docs/cli-guide.md`（ドラフト）を参照してください。
 - ライブラリ API の使い方は `docs/library-guide.md`（ドラフト）で概要をまとめています。
 
 ## ライブラリ利用のヒント
+
 ```ts
 // CommonJS
 const { ComfyUiWorkflow } = require('comine-san');
@@ -81,6 +89,7 @@ import { PrimitiveStringCrystools } from 'comine-san/nodes/input/primitiveString
 - `exports` フィールド経由で CJS/ESM のいずれにも最適化された `dist/cjs` / `dist/esm` を提供しているため、バンドラー経由で `runCli` など未使用コードを除去できます。
 
 ## 開発メモ
+
 - 型チェック: `yarn type-check`
 - ビルド: `yarn build`（`dist/cjs` と `dist/esm` を生成）
 - CI: `.github/workflows/ci.yml` で Node.js 20 上の `yarn type-check` / `yarn build` を実行

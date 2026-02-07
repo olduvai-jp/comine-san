@@ -1,7 +1,7 @@
 import { InputNode } from './inputNodeBase';
 
 interface PrimitiveFloatCrystoolsInputs {
-  "float": number;
+  float: number;
 }
 
 export class PrimitiveFloatCrystools extends InputNode {

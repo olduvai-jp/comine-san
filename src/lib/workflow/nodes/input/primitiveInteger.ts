@@ -1,7 +1,7 @@
 import { InputNode } from './inputNodeBase';
 
 interface PrimitiveIntegerCrystoolsInputs {
-  "int": number;
+  int: number;
 }
 
 export class PrimitiveIntegerCrystools extends InputNode {
@@ -14,5 +14,4 @@ export class PrimitiveIntegerCrystools extends InputNode {
   set inputs(inputs: PrimitiveIntegerCrystoolsInputs) {
     this._inputs = inputs;
   }
-
 }

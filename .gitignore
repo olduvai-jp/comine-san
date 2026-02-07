@@ -134,3 +134,6 @@ dist
 *.png
 *.txt
 *.json
+
+.codex/
+.serena/

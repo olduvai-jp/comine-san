@@ -1,5 +1,5 @@
-import EventEmitter from "events";
-import { ComfyAPIClient } from "../../comfyui";
+import EventEmitter from 'events';
+import { ComfyAPIClient } from '../../comfyui';
 
 // すべてのOutputNodeの基底クラス
 // このクラスを継承してOutputNodeを作成する
@@ -20,7 +20,7 @@ export class OutputNode {
     this._title = title.replace(/[^a-zA-Z0-9_-]/g, '_');
   }
 
-  get inputs () {
+  get inputs() {
     // このメソッドは、外部からの変更を防ぐため、コピーを返す
     return JSON.parse(JSON.stringify(this._inputs));
   }
@@ -33,47 +33,46 @@ export class OutputNode {
     return this._title;
   }
 
-  registEventsToEmitter(emitter: EventEmitter) {
-    new Error('registEventsToEmitter is not implemented');
+  registEventsToEmitter(_emitter: EventEmitter): void {
+    throw new Error('registEventsToEmitter is not implemented');
   }
-  
-  onProgress(comfyui: ComfyAPIClient, data: any) {
+
+  onProgress(_comfyui: ComfyAPIClient, data: any): void {
     const nodeId = data.node as string;
     if (nodeId !== this.nodeId) return;
 
     console.log('Progress:', data);
   }
 
-  onExecuting(comfyui: ComfyAPIClient, data: any) {
+  onExecuting(_comfyui: ComfyAPIClient, data: any): void {
     const nodeId = data.node as string;
     if (nodeId !== this.nodeId) return;
 
     console.log('Executing:', data);
   }
 
-  onExecuted(comfyui: ComfyAPIClient, data: any) {
+  onExecuted(_comfyui: ComfyAPIClient, data: any): void {
     const nodeId = data.node as string;
     if (nodeId !== this.nodeId) return;
 
     console.log('Executed:', data);
   }
 
-  onGetArrayBuffer(comfyui: ComfyAPIClient, data: any) {
+  onGetArrayBuffer(_comfyui: ComfyAPIClient, data: any): void {
     console.log('GetArrayBuffer:', data);
   }
 
-  onDisconnect(comfyui: ComfyAPIClient) {
-  }
+  onDisconnect(_comfyui: ComfyAPIClient): void {}
 
   resultType(): any {
-    new Error('resultType is not implemented');
+    throw new Error('resultType is not implemented');
     // return {
     //   'any' : 'any'
     // };
   }
 
   result(): any {
-    new Error('result is not implemented');
+    throw new Error('result is not implemented');
     // return {
     //   'any' : 'any'
     // };

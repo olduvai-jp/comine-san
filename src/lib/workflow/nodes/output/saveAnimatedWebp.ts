@@ -26,7 +26,7 @@ export class SaveAnimatedWEBP extends OutputNode {
 
     // override inputs
     this._inputs = {
-      filename: `${this.title}.webp`
+      filename: `${this.title}.webp`,
     };
   }
 
@@ -39,7 +39,7 @@ export class SaveAnimatedWEBP extends OutputNode {
     const animationBuffer = await comfyui.view({
       filename: this.filename,
       type: this.type,
-      subfolder: this.subfolder
+      subfolder: this.subfolder,
     });
 
     const saveDir = saveFilePath.split('/').slice(0, -1).join('/');
@@ -92,14 +92,14 @@ export class SaveAnimatedWEBP extends OutputNode {
 
   resultType(): SaveAnimatedWebpOutputs {
     return {
-      filename: 'string'
+      filename: 'string',
     };
   }
 
   result(): SaveAnimatedWebpOutputs {
     const filename = path.resolve(this._inputs['filename']);
     return {
-      filename
+      filename,
     };
   }
 }

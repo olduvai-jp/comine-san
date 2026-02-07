@@ -36,23 +36,26 @@ const rewriteImports = (dir) => {
     } else if (entry.isFile() && entry.name.endsWith('.mts')) {
       const fileDir = dirname(fullPath);
       const original = readFileSync(fullPath, 'utf8');
-      const transformed = original.replace(/(from\s+['"])(\.{1,2}[^'"]*)(['"])/g, (match, prefix, specifier, suffix) => {
-        if (!specifier.startsWith('.')) return match;
-        const targetBase = join(fileDir, specifier);
-        const directFile = `${targetBase}.mts`;
-        const indexFile = join(targetBase, 'index.mts');
+      const transformed = original.replace(
+        /(from\s+['"])(\.{1,2}[^'"]*)(['"])/g,
+        (match, prefix, specifier, suffix) => {
+          if (!specifier.startsWith('.')) return match;
+          const targetBase = join(fileDir, specifier);
+          const directFile = `${targetBase}.mts`;
+          const indexFile = join(targetBase, 'index.mts');
 
-        if (existsSync(directFile)) {
-          return `${prefix}${toPosix(`${specifier}.mjs`)}${suffix}`;
+          if (existsSync(directFile)) {
+            return `${prefix}${toPosix(`${specifier}.mjs`)}${suffix}`;
+          }
+
+          if (existsSync(indexFile)) {
+            const normalized = specifier.endsWith('/') ? specifier.slice(0, -1) : specifier;
+            return `${prefix}${toPosix(`${normalized}/index.mjs`)}${suffix}`;
+          }
+
+          return match;
         }
-
-        if (existsSync(indexFile)) {
-          const normalized = specifier.endsWith('/') ? specifier.slice(0, -1) : specifier;
-          return `${prefix}${toPosix(`${normalized}/index.mjs`)}${suffix}`;
-        }
-
-        return match;
-      });
+      );
 
       writeFileSync(fullPath, transformed);
     }
@@ -71,9 +74,9 @@ const esmConfig = {
     declaration: false,
     sourceMap: false,
     rootDir: './src',
-    types: ['node']
+    types: ['node'],
   },
-  include: ['./src/**/*']
+  include: ['./src/**/*'],
 };
 
 writeFileSync(tmpTsconfigPath, JSON.stringify(esmConfig, null, 2));

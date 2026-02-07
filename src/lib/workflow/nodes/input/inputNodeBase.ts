@@ -24,7 +24,7 @@ export class InputNode {
     return this._title;
   }
 
-  public get inputs () {
+  public get inputs() {
     // このメソッドは、外部からの変更を防ぐため、コピーを返す
     return JSON.parse(JSON.stringify(this._inputs));
   }
@@ -44,5 +44,4 @@ export class InputNode {
   async prepare(_: ComfyAPIClient): Promise<void> {
     return;
   }
-
 }
