@@ -1,4 +1,4 @@
-# ライブラリ利用ガイド（ドラフト）
+# ライブラリ利用ガイド
 
 ## コンセプト
 
@@ -35,6 +35,7 @@ workflow.setWorkflowParams({
   'Prompt_Text.string': 'high quality mascot',
 });
 
+// ComfyUI サーバーが起動している環境で実行してください。
 await workflow.execute('http://127.0.0.1:8188');
 console.log(workflow.getWorkflowResult());
 ```
@@ -82,10 +83,49 @@ import type { ComfyUiWorkflowJson } from 'comine-san/workflow';
 
 - `ComfyUiWorkflow` は純粋な JSON を受け取るだけなので、スナップショットテストや fixture ベースの検証が容易です。
 - WebSocket/HTTP を実際に叩きたくない場合は `ComfyAPIClient` をラップしたモックを用意し、`execute()` の代わりに `queue()` を直接呼ぶなどの戦略が取れます。
-- 近い将来、DI しやすいインターフェースを整備する予定です（Issue 追跡中）。
+- `fetch`/`WebSocket`/`logger` はすでに差し替え可能です。追加の DI しやすさは将来の改善候補ですが、互換性の約束（stable API）には含めません。
 
-## 今後の拡張予定
+## 将来の検討（非保証）
 
-- `outputEmitter` のイベント型付けとリスナーの公式ヘルパーを追加予定。
+- `outputEmitter` のイベント型付けとリスナーのヘルパー整備（互換性は壊さない範囲で追加）。
 - カスタムノード登録 API（プラグイン機構）の検討。
 - `@comine-san/workflow` のようなスコープドパッケージへの分割公開の可能性。
+
+## 安定化ポリシー / ドラフト卒業条件
+
+このドキュメントに記載したライブラリ API を「安定」として扱うための、**実行可能かつ検証可能**な条件です（現状は満たしています）。
+
+### ライブラリ API の安定化条件（library API stability）
+
+- [x] **安定版として保証する「公開 API サーフェス」が確定**している
+  - 対象は **`package.json#exports` で import 可能な全エントリポイント（ワイルドカード含む）**。
+  - 「将来変更し得る内部実装」を作りたい場合は、`exports` から到達できない形にする（＝到達できるものは公開 API 扱い）。
+- [x] **SemVer の適用基準が固定**されている
+  - breaking change（型/シグネチャ/挙動の互換性を破る変更）は **major**
+  - 互換性を保った追加（新しい export/メソッド/イベント追加など）は **minor**
+  - バグ修正・ドキュメント修正は **patch**
+- [x] **主要クラスの契約が固定**され、テストで担保されている
+  - `ComfyUiWorkflow`
+    - `getWorkflowParams()` が返すキー形式は `<NodeTitle>.<InputKey>` である
+    - `NodeTitle` は `_meta.title` を正規化したもの（`[^a-zA-Z0-9_-]` を `_` に置換）
+    - `setWorkflowParams()` は既知キーのみを上書きし、`undefined` は上書きしない
+    - `getModifiedJson()` は deep copy を返し、元 JSON を破壊しない
+    - `outputEmitter` が少なくとも `progress` / `executing` / `executed` / `disconnected` を発火し続ける（追加は OK、削除/意味変更は major）
+  - `ComfyAPIClient`
+    - `queue()` が `/prompt` + WebSocket を用いてワークフローを実行し、完了時に resolve/reject する
+    - `fetch` / `WebSocket` / `logger` の差し替え（DI）が可能で、テストで安定動作が担保されている
+- [x] **公開 import の動作確認（パッケージ形での検証）が自動化**されている
+  - `npm run prepublishOnly` が通る（type-check / test / build）
+- [x] **互換性を壊す変更の検知手段がある**
+  - 最低限: `package.json#exports` で到達できる公開 import 群をコンパイルする「public API import テスト」（`tsc --noEmit` で落ちる形）を CI に入れる
+  - 追加で可能なら: 型のスナップショット/公開型の差分チェック（API レポート）を導入する
+
+（推奨）リリース前の手動検証として `npm pack` した `.tgz` を `node` / `npx` で使い、配布形での import/実行を確認すると安全です（ただし CI の必須条件にはしません）。
+
+### ドキュメントの安定化条件（draft -> stable）
+
+- [x] このファイルのタイトルから「（ドラフト）」を外す前に、上記チェックがすべて `✅` になっている
+- [x] すべてのサンプルコードが **現行バージョンで動作**し、実行条件（Node 18+ / ComfyUI URL など）が明記されている
+- [x] 「予定」「近い将来」「Issue 追跡中」などの記述は、安定版では以下のいずれかにする
+  - 明確な Issue/マイルストーンへのリンク（もしくは削除）
+  - 互換性約束の範囲外（experimental）として明示

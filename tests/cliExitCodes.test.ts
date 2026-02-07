@@ -175,6 +175,258 @@ test('runCli: unknown option is not printed twice', async () => {
   }
 });
 
+test('runCli: --quiet and --verbose are mutually exclusive (exitCode=2) and does not execute workflow', async () => {
+  const originalExitCode = process.exitCode;
+  const originalExecute = (ComfyUiWorkflow.prototype as any).execute;
+  process.exitCode = undefined;
+  const cap = captureStdoutStderr();
+
+  let executeCalls = 0;
+  (ComfyUiWorkflow.prototype as any).execute = async () => {
+    executeCalls += 1;
+  };
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'comine-san-tests-'));
+  const workflowPath = path.join(dir, 'workflow_api.json');
+  fs.writeFileSync(
+    workflowPath,
+    JSON.stringify({
+      '1': {
+        class_type: 'Primitive string multiline [Crystools]',
+        inputs: { string: 'hello' },
+        _meta: { title: 'Prompt Text' },
+      },
+    }),
+    'utf8',
+  );
+
+  try {
+    await runCli(['node', 'comine-san', workflowPath, '--quiet', '--verbose']);
+    assert.equal(process.exitCode, 2);
+    assert.equal(executeCalls, 0);
+    assert.equal(cap.getStdout(), '');
+    assert.match(cap.getStderr(), /mutually exclusive/i);
+  } finally {
+    cap.restore();
+    (ComfyUiWorkflow.prototype as any).execute = originalExecute;
+    process.exitCode = originalExitCode;
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // ignore
+    }
+  }
+});
+
+test('runCli: success sets exitCode=0 (implicit) and stdout is human log unless --quiet', async () => {
+  const originalExitCode = process.exitCode;
+  const originalExecute = (ComfyUiWorkflow.prototype as any).execute;
+  process.exitCode = undefined;
+
+  (ComfyUiWorkflow.prototype as any).execute = async () => {};
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'comine-san-tests-'));
+  const workflowPath = path.join(dir, 'workflow_api.json');
+  const outputJsonPath = path.join(dir, 'out.json');
+  fs.writeFileSync(
+    workflowPath,
+    JSON.stringify({
+      '1': {
+        class_type: 'Primitive string multiline [Crystools]',
+        inputs: { string: 'hello' },
+        _meta: { title: 'Prompt Text' },
+      },
+    }),
+    'utf8',
+  );
+
+  const cap = captureStdoutStderr();
+  try {
+    await runCli(['node', 'comine-san', workflowPath, '--output-json', outputJsonPath]);
+    assert.ok(process.exitCode == null || process.exitCode === 0);
+    assert.ok(fs.existsSync(outputJsonPath), 'output json was not written');
+    // stdout is human-oriented unless --quiet; avoid coupling to exact wording.
+    assert.ok(cap.getStdout().length > 0, 'stdout should not be empty on success');
+    assert.equal(cap.getStderr(), '');
+  } finally {
+    cap.restore();
+    (ComfyUiWorkflow.prototype as any).execute = originalExecute;
+    process.exitCode = originalExitCode;
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // ignore
+    }
+  }
+});
+
+test('runCli: --quiet prints only output json path to stdout', async () => {
+  const originalExitCode = process.exitCode;
+  const originalExecute = (ComfyUiWorkflow.prototype as any).execute;
+  process.exitCode = undefined;
+
+  (ComfyUiWorkflow.prototype as any).execute = async () => {};
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'comine-san-tests-'));
+  const workflowPath = path.join(dir, 'workflow_api.json');
+  const outputJsonPath = path.join(dir, 'out.json');
+  fs.writeFileSync(
+    workflowPath,
+    JSON.stringify({
+      '1': {
+        class_type: 'Primitive string multiline [Crystools]',
+        inputs: { string: 'hello' },
+        _meta: { title: 'Prompt Text' },
+      },
+    }),
+    'utf8',
+  );
+
+  const cap = captureStdoutStderr();
+  try {
+    await runCli(['node', 'comine-san', workflowPath, '--output-json', outputJsonPath, '--quiet']);
+    assert.ok(process.exitCode == null || process.exitCode === 0);
+    assert.equal(cap.getStdout().trim(), outputJsonPath);
+    assert.equal(cap.getStderr(), '');
+  } finally {
+    cap.restore();
+    (ComfyUiWorkflow.prototype as any).execute = originalExecute;
+    process.exitCode = originalExitCode;
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // ignore
+    }
+  }
+});
+
+test('runCli: --verbose event logs go to stderr (stdout stays human log)', async () => {
+  const originalExitCode = process.exitCode;
+  const originalExecute = (ComfyUiWorkflow.prototype as any).execute;
+  process.exitCode = undefined;
+
+  (ComfyUiWorkflow.prototype as any).execute = async function (this: ComfyUiWorkflow) {
+    this.outputEmitter.emit('progress', null, { step: 'p' });
+    this.outputEmitter.emit('executing', null, { node: '1' });
+    this.outputEmitter.emit('executed', null, { node: '1' });
+  };
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'comine-san-tests-'));
+  const workflowPath = path.join(dir, 'workflow_api.json');
+  const outputJsonPath = path.join(dir, 'out.json');
+  fs.writeFileSync(
+    workflowPath,
+    JSON.stringify({
+      '1': {
+        class_type: 'Primitive string multiline [Crystools]',
+        inputs: { string: 'hello' },
+        _meta: { title: 'Prompt Text' },
+      },
+    }),
+    'utf8',
+  );
+
+  const cap = captureStdoutStderr();
+  try {
+    await runCli(['node', 'comine-san', workflowPath, '--output-json', outputJsonPath, '--verbose']);
+    assert.ok(process.exitCode == null || process.exitCode === 0);
+    assert.ok(cap.getStdout().length > 0, 'stdout should not be empty on success');
+    assert.match(cap.getStderr(), /Progress:/);
+    assert.match(cap.getStderr(), /Executing:/);
+    assert.match(cap.getStderr(), /Executed:/);
+    assert.ok(!cap.getStdout().includes('Progress:'), 'stdout should not contain verbose event logs');
+  } finally {
+    cap.restore();
+    (ComfyUiWorkflow.prototype as any).execute = originalExecute;
+    process.exitCode = originalExitCode;
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // ignore
+    }
+  }
+});
+
+test('runCli: ComfyUI server/network error sets exitCode=5', async () => {
+  const originalExitCode = process.exitCode;
+  const originalExecute = (ComfyUiWorkflow.prototype as any).execute;
+  process.exitCode = undefined;
+  const cap = captureStdoutStderr();
+
+  (ComfyUiWorkflow.prototype as any).execute = async () => {
+    throw new Error('ECONNREFUSED 127.0.0.1:8188');
+  };
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'comine-san-tests-'));
+  const workflowPath = path.join(dir, 'workflow_api.json');
+  fs.writeFileSync(
+    workflowPath,
+    JSON.stringify({
+      '1': {
+        class_type: 'Primitive string multiline [Crystools]',
+        inputs: { string: 'hello' },
+        _meta: { title: 'Prompt Text' },
+      },
+    }),
+    'utf8',
+  );
+
+  try {
+    await runCli(['node', 'comine-san', workflowPath]);
+    assert.equal(process.exitCode, 5);
+    assert.match(cap.getStderr(), /ECONNREFUSED/i);
+  } finally {
+    cap.restore();
+    (ComfyUiWorkflow.prototype as any).execute = originalExecute;
+    process.exitCode = originalExitCode;
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // ignore
+    }
+  }
+});
+
+test('runCli: unknown error sets exitCode=1', async () => {
+  const originalExitCode = process.exitCode;
+  const originalExecute = (ComfyUiWorkflow.prototype as any).execute;
+  process.exitCode = undefined;
+  const cap = captureStdoutStderr();
+
+  (ComfyUiWorkflow.prototype as any).execute = async () => {
+    throw new Error('some unexpected failure');
+  };
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'comine-san-tests-'));
+  const workflowPath = path.join(dir, 'workflow_api.json');
+  fs.writeFileSync(
+    workflowPath,
+    JSON.stringify({
+      '1': {
+        class_type: 'Primitive string multiline [Crystools]',
+        inputs: { string: 'hello' },
+        _meta: { title: 'Prompt Text' },
+      },
+    }),
+    'utf8',
+  );
+
+  try {
+    await runCli(['node', 'comine-san', workflowPath]);
+    assert.equal(process.exitCode, 1);
+    assert.match(cap.getStderr(), /unexpected failure/i);
+  } finally {
+    cap.restore();
+    (ComfyUiWorkflow.prototype as any).execute = originalExecute;
+    process.exitCode = originalExitCode;
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // ignore
+    }
+  }
+});
+
 test('library: OutputNodeBase default handlers do not call console.log', () => {
   const originalConsoleLog = console.log;
   let calls = 0;

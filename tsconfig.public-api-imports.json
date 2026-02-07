@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "comine-san": ["./src/index.ts"],
+      "comine-san/lib": ["./src/lib/index.ts"],
+      "comine-san/cli": ["./src/cli/index.ts"],
+      "comine-san/workflow": ["./src/lib/workflow/workflow.ts"],
+      "comine-san/workflow/*": ["./src/lib/workflow/*.ts"],
+      "comine-san/nodes/*": ["./src/lib/workflow/nodes/*"],
+      "comine-san/package.json": ["./package.json"]
+    }
+  },
+  "include": ["tests/typecheck/public-api-imports.ts"]
+}
