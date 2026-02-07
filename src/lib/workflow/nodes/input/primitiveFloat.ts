@@ -1,17 +1,17 @@
 import { InputNode } from './inputNodeBase';
 
 interface PrimitiveFloatCrystoolsInputs {
-  "float": number;
+  float: number;
 }
 
 export class PrimitiveFloatCrystools extends InputNode {
   static _className = 'Primitive float [Crystools]';
 
   get inputs() {
-    return super.inputs as PrimitiveFloatCrystoolsInputs;
+    return JSON.parse(JSON.stringify(this._inputs)) as PrimitiveFloatCrystoolsInputs;
   }
 
   set inputs(inputs: PrimitiveFloatCrystoolsInputs) {
-    super.inputs = inputs;
+    this._inputs = inputs;
   }
 }

@@ -1,17 +1,17 @@
 import { InputNode } from './inputNodeBase';
 
 interface PrimitiveStringCrystoolsInputs {
-  "string": string;
+  string: string;
 }
 
 export class PrimitiveStringCrystools extends InputNode {
   static _className = 'Primitive string multiline [Crystools]';
 
   get inputs() {
-    return super.inputs as PrimitiveStringCrystoolsInputs;
+    return JSON.parse(JSON.stringify(this._inputs)) as PrimitiveStringCrystoolsInputs;
   }
 
   set inputs(inputs: PrimitiveStringCrystoolsInputs) {
-    super.inputs = inputs;
+    this._inputs = inputs;
   }
 }
