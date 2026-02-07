@@ -2,6 +2,26 @@
 
 Comine San は ComfyUI でエクスポートした `workflow_api.json` を読み込み、CLI からワークフローを実行する TypeScript 製ツールです。
 
+## TL;DR（npx）
+
+まずは `--help` で、読み込んだワークフローから生成されるオプションを確認します。
+
+```shell
+npx --yes @olduvai-jp/comine-san ./path/to/workflow_api.json --help
+```
+
+オプションが分かったら実行します。
+
+```shell
+npx --yes @olduvai-jp/comine-san ./path/to/workflow_api.json \
+  --output-json ./results/output.json \
+  --server http://127.0.0.1:8188 \
+  --Prompt_Text.string "test prompt" \
+  --SaveImage.filename output/result.png
+```
+
+> `npx` が使えない環境では `npm exec --yes -- @olduvai-jp/comine-san ...` でも実行できます。
+
 ## 特徴
 
 - ワークフロー内の入力/出力ノードを解析し、`--<ノードタイトル>.<入力名>` 形式の CLI オプションを自動生成
@@ -11,14 +31,8 @@ Comine San は ComfyUI でエクスポートした `workflow_api.json` を読み
 ## 必要環境
 
 - Node.js 18 以上（`fetch` API を利用）
-- Yarn もしくは npm
+- `npx`（npm）/ `npm exec` が使えること
 - 実行中の ComfyUI サーバー（デフォルトは `http://127.0.0.1:8188`）
-
-## セットアップ
-
-```shell
-yarn install
-```
 
 ## 使い方
 
@@ -27,7 +41,7 @@ yarn install
 3. 下記のように `--help` を実行し、利用可能なオプションを確認する。
 
 ```shell
-yarn start ./path/to/workflow_api.json --help
+npx --yes @olduvai-jp/comine-san ./path/to/workflow_api.json --help
 ```
 
 `Result types` として、取得できる出力ノードとフィールド型が末尾に表示されます。
@@ -35,7 +49,7 @@ yarn start ./path/to/workflow_api.json --help
 4. 必要なオプションを確認したら、実際の実行コマンドを組み立てて実行する。
 
 ```shell
-yarn start ./path/to/workflow_api.json \
+npx --yes @olduvai-jp/comine-san ./path/to/workflow_api.json \
   --output-json ./results/output.json \
   --server http://127.0.0.1:8188 \
   --Prompt_Text.string "test prompt" \
@@ -87,6 +101,18 @@ import { PrimitiveStringCrystools } from '@olduvai-jp/comine-san/nodes/input/pri
 
 - CLI 実行ロジックに直接アクセスする場合は `@olduvai-jp/comine-san/cli` を import してください（`npx` 利用時は不要）。
 - `exports` フィールド経由で CJS/ESM のいずれにも最適化された `dist/cjs` / `dist/esm` を提供しているため、バンドラー経由で未使用のエントリーポイント（例: `@olduvai-jp/comine-san/cli`）を除去できます。
+
+## セットアップ（開発者向け）
+
+```shell
+yarn install
+```
+
+ローカルで CLI を叩く場合は `ts-node` 経由で実行できます。
+
+```shell
+yarn start ./path/to/workflow_api.json --help
+```
 
 ## 開発メモ
 
