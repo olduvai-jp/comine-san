@@ -12,6 +12,7 @@ import { ShowAnyToJson } from './nodes/output/showAnyToJson';
 import { LoadImageBase64 } from './nodes/input/loadImageBase64';
 import { ShowTextPysssss } from './nodes/output/showText';
 import { LoadImage } from './nodes/input/loadImage';
+import type { WorkflowResults, WorkflowResultTypes } from './resultTypes';
 
 const inputNodeClasses = [
   PrimitiveStringCrystools,
@@ -44,8 +45,7 @@ export type WorkflowParameterValue =
   | Record<string, unknown>
   | Array<unknown>;
 export type WorkflowParams = Record<string, WorkflowParameterValue>;
-export type WorkflowResultTypes = Record<string, string>;
-export type WorkflowResults = Record<string, unknown>;
+export type { WorkflowResultAtomType, WorkflowResultTypes, WorkflowResults, WorkflowResultValue } from './resultTypes';
 
 export class ComfyUiWorkflow {
   // 入力されたworkflowのjson全文
@@ -183,6 +183,10 @@ export class ComfyUiWorkflow {
     for (const inputNodeInstance of this.inputNodeInstances) {
       const nodeId = inputNodeInstance.nodeId;
       const inputs = inputNodeInstance.inputs;
+
+      // Defensive: some workflow JSONs may omit `inputs` for certain nodes.
+      if (!modifiedJson[nodeId]) continue;
+      if (!modifiedJson[nodeId].inputs) modifiedJson[nodeId].inputs = {};
 
       for (const inputKey of Object.keys(inputs)) {
         modifiedJson[nodeId].inputs[inputKey] = inputs[inputKey];

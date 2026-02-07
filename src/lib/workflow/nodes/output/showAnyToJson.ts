@@ -1,9 +1,6 @@
 import EventEmitter from 'events';
 import { OutputNode } from './outputNodeBase';
-
-interface ShowAnyToJsonOutputs {
-  text: string;
-}
+import type { WorkflowResultAtomType, WorkflowResultValue } from '../../resultTypes';
 
 export class ShowAnyToJson extends OutputNode {
   static _className = 'Show any to JSON [Crystools]';
@@ -33,13 +30,13 @@ export class ShowAnyToJson extends OutputNode {
     this.text = JSON.stringify(textJson);
   }
 
-  resultType(): ShowAnyToJsonOutputs {
+  resultType(): Record<string, WorkflowResultAtomType> {
     return {
       text: 'string',
     };
   }
 
-  result(): ShowAnyToJsonOutputs {
+  result(): Record<string, WorkflowResultValue> {
     const text = this.text;
     return {
       text,

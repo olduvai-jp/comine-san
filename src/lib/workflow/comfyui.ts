@@ -1,4 +1,4 @@
-import { WebSocket } from 'ws';
+import { WebSocket as WsWebSocket } from 'ws';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -16,11 +16,46 @@ export interface UploadImageResponse {
   type: string;
 }
 
+export type ComfyFetch = (
+  input: any,
+  init?: any
+) => Promise<{
+  ok: boolean;
+  status: number;
+  statusText: string;
+  text(): Promise<string>;
+  arrayBuffer?(): Promise<ArrayBuffer>;
+}>;
+
+export type ComfyWebSocketInstance = {
+  on(event: 'close', listener: () => void): any;
+  on(event: 'error', listener: (err: Error) => void): any;
+  on(event: 'message', listener: (data: Buffer) => void): any;
+  close(): void;
+  readyState: number;
+};
+
+export type ComfyWebSocketCtor = {
+  new (url: string): ComfyWebSocketInstance;
+  CONNECTING: number;
+  OPEN: number;
+};
+
 export class ComfyAPIClient {
   private _url: string;
+  private _fetch: ComfyFetch;
+  private _WebSocket: ComfyWebSocketCtor;
 
-  constructor(url: string) {
+  constructor(
+    url: string,
+    deps?: {
+      fetch?: ComfyFetch;
+      WebSocket?: ComfyWebSocketCtor;
+    }
+  ) {
     this._url = url.replace(/\/+$/, '');
+    this._fetch = deps?.fetch ?? fetch;
+    this._WebSocket = deps?.WebSocket ?? WsWebSocket;
   }
 
   private get wsUrl(): string {
@@ -33,9 +68,20 @@ export class ComfyAPIClient {
   }
 
   async view(query: ViewQuery): Promise<Buffer> {
-    const url = `${this.url}/view?${new URLSearchParams(query as Record<string, string>)}`;
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query)) {
+      if (typeof value === 'string') params.set(key, value);
+    }
+
+    const qs = params.toString();
+    const url = qs.length > 0 ? `${this.url}/view?${qs}` : `${this.url}/view`;
     // console.log(url);
-    const res = await fetch(url);
+    const res = await this._fetch(url);
+    if (typeof res.arrayBuffer !== 'function') {
+      throw new Error(
+        'ComfyFetch response is missing arrayBuffer(); provide a fetch implementation that supports binary responses.'
+      );
+    }
     return Buffer.from(await res.arrayBuffer());
   }
 
@@ -53,7 +99,7 @@ export class ComfyAPIClient {
     if (options.subfolder) formData.append('subfolder', options.subfolder);
     if (options.overwrite) formData.append('overwrite', 'true');
 
-    const res = await fetch(`${this.url}/upload/image`, {
+    const res = await this._fetch(`${this.url}/upload/image`, {
       method: 'POST',
       body: formData,
     });
@@ -81,89 +127,141 @@ export class ComfyAPIClient {
 
   async queue(workflow: ComfyUiWorkflow): Promise<void> {
     const uuid = crypto.randomUUID();
-    const ws = new WebSocket(`${this.wsUrl}/ws?clientId=${uuid}`);
+    const WebSocketCtor = this._WebSocket;
+    const ws = new WebSocketCtor(`${this.wsUrl}/ws?clientId=${uuid}`);
     // ws.binaryType = "arraybuffer";
 
-    const res = await fetch(`${this.url}/prompt`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt: workflow.getModifiedJson(),
-        client_id: uuid,
-      }),
+    let promptId: string | undefined;
+
+    let resolveWsDone: () => void;
+    const wsDone = new Promise<void>((resolve) => {
+      resolveWsDone = resolve;
     });
 
-    const rawBody = await res.text();
-    let json: any = {};
+    let finalized = false;
+    const finalize = () => {
+      if (finalized) return;
+      finalized = true;
+      workflow.outputEmitter.emit('disconnected', this);
+      resolveWsDone();
+    };
 
-    if (rawBody.length > 0) {
+    // Attach handlers immediately so we don't miss early close/error/message.
+    ws.on('close', () => {
+      finalize();
+    });
+
+    ws.on('error', (err: Error) => {
+      console.log(err);
+      finalize();
+    });
+
+    ws.on('message', async (data: Buffer) => {
       try {
-        json = JSON.parse(rawBody);
-      } catch (_error) {
-        const snippet = rawBody.slice(0, 200).replace(/\s+/g, ' ').trim();
-        throw new Error(
-          `Failed to parse ComfyUI response (status ${res.status} ${res.statusText}): ${snippet || '[empty body]'}`
-        );
-      }
-    }
+        const message = JSON.parse(data.toString());
 
-    if (!res.ok) {
-      throw new Error(`ComfyUI server error ${res.status} ${res.statusText}: ${JSON.stringify(json)}`);
-    }
+        switch (message.type) {
+          case 'progress':
+            workflow.outputEmitter.emit('progress', this, message.data);
+            break;
+          case 'executing':
+            workflow.outputEmitter.emit('executing', this, message.data);
+            // ComfyUI signals completion with an `executing` message where `node` is null.
+            // `promptId` is typically set from the HTTP `/prompt` response, but WS messages can
+            // theoretically arrive before that response is parsed. Avoid hanging in that case.
+            if (message.data?.node == null) {
+              const msgPromptId = message.data?.prompt_id;
+              const msgPromptIdStr = typeof msgPromptId === 'string' ? msgPromptId : undefined;
 
-    //console.log(res.status);
+              if (!promptId && typeof msgPromptIdStr === 'string' && msgPromptIdStr.length > 0) {
+                promptId = msgPromptIdStr;
+              }
 
-    await new Promise<void>((resolve) => {
-      ws.on('close', () => {
-        workflow.outputEmitter.emit('disconnected', this);
-        resolve();
-      });
-
-      ws.on('error', (err: Error) => {
-        console.log(err);
-        resolve();
-      });
-
-      ws.on('message', async (data: Buffer) => {
-        try {
-          const message = JSON.parse(data.toString());
-
-          switch (message.type) {
-            case 'progress':
-              workflow.outputEmitter.emit('progress', this, message.data);
-              break;
-            case 'executing':
-              workflow.outputEmitter.emit('executing', this, message.data);
-              if (message.data.prompt_id === (json as any).prompt_id && message.data.node == null) {
+              // Close if:
+              // - we don't have a promptId yet, or
+              // - the message lacks a usable prompt_id (some servers omit it), or
+              // - the prompt_id matches.
+              //
+              // If a prompt_id is present and conflicts, keep the socket open.
+              if (!promptId || msgPromptIdStr == null || msgPromptIdStr.length === 0 || msgPromptIdStr === promptId) {
                 ws.close();
               }
-              break;
-            case 'executed':
-              workflow.outputEmitter.emit('executed', this, message.data);
-              break;
-            case 'status':
-              break;
-            case 'execution_start':
-              break;
-            case 'execution_cached':
-              break;
-            case 'crystools.monitor':
-              break;
-            case 'progress_state':
-              break;
-            case 'execution_success':
-              break;
-            default:
-              console.log('Unknown message type');
-              console.log(message);
-              break;
-          }
-        } catch (e) {
-          console.log(e);
+            }
+            break;
+          case 'executed':
+            workflow.outputEmitter.emit('executed', this, message.data);
+            break;
+          case 'status':
+            break;
+          case 'execution_start':
+            break;
+          case 'execution_cached':
+            break;
+          case 'crystools.monitor':
+            break;
+          case 'progress_state':
+            break;
+          case 'execution_success':
+            break;
+          default:
+            console.log('Unknown message type');
+            console.log(message);
+            break;
         }
-      });
+      } catch (e) {
+        console.log(e);
+      }
     });
+
+    try {
+      const res = await this._fetch(`${this.url}/prompt`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: workflow.getModifiedJson(),
+          client_id: uuid,
+        }),
+      });
+
+      const rawBody = await res.text();
+      let json: any = {};
+
+      if (rawBody.length > 0) {
+        try {
+          json = JSON.parse(rawBody);
+        } catch (_error) {
+          const snippet = rawBody.slice(0, 200).replace(/\s+/g, ' ').trim();
+          throw new Error(
+            `Failed to parse ComfyUI response (status ${res.status} ${res.statusText}): ${snippet || '[empty body]'}`
+          );
+        }
+      }
+
+      if (!res.ok) {
+        throw new Error(`ComfyUI server error ${res.status} ${res.statusText}: ${JSON.stringify(json)}`);
+      }
+
+      const maybePromptId = (json as any).prompt_id;
+      if (typeof maybePromptId !== 'string' || maybePromptId.length === 0) {
+        throw new Error(`ComfyUI response missing prompt_id: ${JSON.stringify(json)}`);
+      }
+      promptId = maybePromptId;
+    } catch (err) {
+      try {
+        if (ws.readyState === WebSocketCtor.OPEN || ws.readyState === WebSocketCtor.CONNECTING) {
+          ws.close();
+        }
+      } catch (_closeErr) {
+        // ignore
+      }
+      finalize();
+      await wsDone;
+      throw err;
+    }
+
+    // Wait until the server closes the socket (or we close it after execution is done).
+    await wsDone;
   }
 }

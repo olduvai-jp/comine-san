@@ -1,9 +1,6 @@
 import EventEmitter from 'events';
 import { OutputNode } from './outputNodeBase';
-
-interface ShowTextPysssssOutputs {
-  text: string;
-}
+import type { WorkflowResultAtomType, WorkflowResultValue } from '../../resultTypes';
 
 export class ShowTextPysssss extends OutputNode {
   static _className = 'ShowText|pysssss';
@@ -31,13 +28,13 @@ export class ShowTextPysssss extends OutputNode {
     this.text = textJson.join('\n');
   }
 
-  resultType(): ShowTextPysssssOutputs {
+  resultType(): Record<string, WorkflowResultAtomType> {
     return {
       text: 'string',
     };
   }
 
-  result(): ShowTextPysssssOutputs {
+  result(): Record<string, WorkflowResultValue> {
     const text = this.text;
     return {
       text,

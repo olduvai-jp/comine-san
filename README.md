@@ -86,7 +86,7 @@ import { PrimitiveStringCrystools } from 'comine-san/nodes/input/primitiveString
 ```
 
 - CLI 実行ロジックに直接アクセスする場合は `comine-san/cli` を import してください（`npx` 利用時は不要）。
-- `exports` フィールド経由で CJS/ESM のいずれにも最適化された `dist/cjs` / `dist/esm` を提供しているため、バンドラー経由で `runCli` など未使用コードを除去できます。
+- `exports` フィールド経由で CJS/ESM のいずれにも最適化された `dist/cjs` / `dist/esm` を提供しているため、バンドラー経由で未使用のエントリーポイント（例: `comine-san/cli`）を除去できます。
 
 ## 開発メモ
 

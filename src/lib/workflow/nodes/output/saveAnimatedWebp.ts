@@ -3,10 +3,7 @@ import { OutputNode } from './outputNodeBase';
 import { ComfyAPIClient } from '../../comfyui';
 import * as fs from 'fs/promises';
 import path from 'path';
-
-interface SaveAnimatedWebpOutputs {
-  filename: string;
-}
+import type { WorkflowResultAtomType, WorkflowResultValue } from '../../resultTypes';
 
 interface SaveAnimatedWebpInfo {
   filename?: string;
@@ -32,7 +29,7 @@ export class SaveAnimatedWEBP extends OutputNode {
 
   registEventsToEmitter(emitter: EventEmitter): void {
     emitter.on('executed', this.onExecuted.bind(this));
-    emitter.on('disconnected', this.onDisconnected.bind(this));
+    emitter.on('disconnected', this.onDisconnect.bind(this));
   }
 
   private async animationSave(comfyui: ComfyAPIClient, saveFilePath: string): Promise<void> {
@@ -42,11 +39,13 @@ export class SaveAnimatedWEBP extends OutputNode {
       subfolder: this.subfolder,
     });
 
-    const saveDir = saveFilePath.split('/').slice(0, -1).join('/');
-    try {
-      await fs.mkdir(saveDir, { recursive: true });
-    } catch (_error) {
-      // ignore mkdir races
+    const saveDir = path.dirname(saveFilePath);
+    if (saveDir && saveDir !== '.') {
+      try {
+        await fs.mkdir(saveDir, { recursive: true });
+      } catch (_error) {
+        // ignore mkdir races
+      }
     }
 
     await fs.writeFile(saveFilePath, Buffer.from(animationBuffer));
@@ -90,13 +89,13 @@ export class SaveAnimatedWEBP extends OutputNode {
     void this.animationSave(comfyui, saveFilePath);
   }
 
-  resultType(): SaveAnimatedWebpOutputs {
+  resultType(): Record<string, WorkflowResultAtomType> {
     return {
       filename: 'string',
     };
   }
 
-  result(): SaveAnimatedWebpOutputs {
+  result(): Record<string, WorkflowResultValue> {
     const filename = path.resolve(this._inputs['filename']);
     return {
       filename,

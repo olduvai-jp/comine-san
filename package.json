@@ -43,9 +43,6 @@
   "sideEffects": false,
   "typesVersions": {
     "*": {
-      "*": [
-        "dist/types/index.d.ts"
-      ],
       "lib": [
         "dist/types/lib/index.d.ts"
       ],
@@ -57,6 +54,9 @@
       ],
       "nodes/*": [
         "dist/types/lib/workflow/nodes/*.d.ts"
+      ],
+      "nodes/*/*": [
+        "dist/types/lib/workflow/nodes/*/*.d.ts"
       ],
       "cli": [
         "dist/types/cli/index.d.ts"
@@ -76,6 +76,7 @@
     "format": "prettier . --write --ignore-unknown",
     "format:check": "prettier . --check --ignore-unknown",
     "start": "ts-node src/cli/bin.ts",
+    "test": "node scripts/test.mjs",
     "type-check": "tsc --noEmit",
     "prepare": "npm run build"
   },

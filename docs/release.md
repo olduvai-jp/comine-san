@@ -1,0 +1,67 @@
+# リリース手順
+
+`comine-san` を npm へ公開する際のフロー、バージョニング、アクセス管理をまとめたメンテナー向けガイドです。すべてのリリースは Semantic Versioning (`MAJOR.MINOR.PATCH`) に従い、`main` ブランチからのみ行います。
+
+## 前提条件
+
+- Node.js 18 以上と最新の `npm` がインストールされていること。
+- GitHub の `main` ブランチに書き込みできること。
+- npm organization（`comine-san` パッケージの権限）で `publish` 権限を持っていること。
+- 2FA が必須の npm アカウントであること（organization 設定に合わせる）。
+
+## バージョン管理ポリシー
+
+| 用途                        | 例                             | 説明                                            |
+| --------------------------- | ------------------------------ | ----------------------------------------------- |
+| 破壊的変更                  | `npm version major` → `v2.0.0` | CLI の既存オプション削除や公開 API の互換性崩壊 |
+| 後方互換な機能追加          | `npm version minor` → `v1.1.0` | 新しいノード型や CLI オプションを追加           |
+| バグ修正 / ドキュメントのみ | `npm version patch` → `v1.0.1` | ログ改善、型調整、CI 修正など                   |
+
+`npm version` は自動的に `CHANGELOG.md` 更新分と合わせてタグを作成します。タグは GitHub へ push し、必要に応じて Release Note を作成してください。
+
+## リリースチェックリスト
+
+1. `main` を最新にし、未マージの変更がないか確認する。
+2. ドキュメント（`README.md`, `docs/*.md`）と `CHANGELOG.md` を更新する。
+3. `npm run prepublishOnly` で型チェックとビルドが通ることを確認する。
+4. `docs/cli-guide.md` の手順で `npm pack` → `npx` リハーサルを行い、生成物が動作することを確認する。
+5. `npm version <major|minor|patch>` を実行し、バージョン番号とタグを更新する。
+6. `git push origin main --tags` を実行し、CI が成功することを確認する。
+7. `npm publish --access public`（または organization 設定に応じたコマンド）を実行する。
+8. GitHub Release に変更点を掲載し、必要に応じてドキュメントへリンクする。
+
+## npm publish コマンド
+
+```bash
+# 例: 後方互換の機能追加
+npm version minor
+git push origin main --tags
+npm publish --access public
+```
+
+CI/CD で自動 publish する場合は、`NODE_AUTH_TOKEN` を GitHub Actions のシークレットに保存し、タグ push をトリガーに `npm publish --provenance` を実行するワークフローを追加してください。
+
+## GitHub Actions での自動 publish
+
+- `.github/workflows/release.yml` は Release の `published` イベント（または手動 `workflow_dispatch`）で起動し、`yarn install → type-check → test → build → npm publish --provenance` を実行します。
+- 事前に GitHub リポジトリの `Settings > Secrets and variables > Actions` へ `NPM_TOKEN`（publish 権限付きトークン）を登録してください。Workflow では `NODE_AUTH_TOKEN` として自動参照されます。
+- npm 側で provenance が有効になるよう `id-token: write` パーミッションも付与済みです。Organization のポリシーで Provenance を必須にしている場合でも追加設定は不要です。
+- Release を作成して `Publish release` を押すと自動的に npm へ公開されます。事前検証したい場合は `workflow_dispatch` を実行し、成功後に Release を確定させてください。
+
+## アクセス制御
+
+- npm: organization owners が `publish` 権限を管理します。少なくとも 2 名以上で管理し、パスワードレスポンスに備えてください。
+- GitHub: Release 権限を持つメンテナーのみがタグ push と Release 作成を行う想定です。
+- CI: `NODE_AUTH_TOKEN` を使うワークフローは `environment` で保護し、承認が必要な設定にします。
+
+## トラブルシューティング
+
+| 症状                     | 対応                                                                                          |
+| ------------------------ | --------------------------------------------------------------------------------------------- |
+| `npm version` が失敗する | `git status` が clean か確認。未コミットがあればコミットしてから再実行                        |
+| `npm publish` で 403/401 | npm の 2FA/Token が有効期限切れ。`npm login --registry https://registry.npmjs.org/` で再発行  |
+| 公開後に重大な不具合     | `npm dist-tag add comine-san@<previous-version> latest` でロールバックし、修正版を re-publish |
+
+## 今後の自動化 TODO
+
+- `npm run test --coverage` の結果や `npm pack` 生成物を CI のアーティファクトとして保存し、レビュー時の検証コストを下げる。

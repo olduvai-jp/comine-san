@@ -5,6 +5,8 @@ export {
   type WorkflowParams,
   type WorkflowParameterValue,
   type WorkflowResults,
+  type WorkflowResultValue,
+  type WorkflowResultAtomType,
   type WorkflowResultTypes,
 } from './workflow/workflow';
 
