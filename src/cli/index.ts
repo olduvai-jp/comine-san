@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import * as fs from 'fs';
 import { Command } from 'commander';
 import { ComfyUiWorkflow } from '../lib';
@@ -64,11 +63,4 @@ export async function runCli(argv: string[] = process.argv): Promise<void> {
   const outputJsonPath = options.outputJson;
   fs.writeFileSync(outputJsonPath, JSON.stringify(results, null, 2));
   console.log(`Output json saved to ${outputJsonPath}`);
-}
-
-if (require.main === module) {
-  runCli().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  });
 }
