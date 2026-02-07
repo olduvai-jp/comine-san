@@ -133,7 +133,6 @@ dist
 # debug file
 *.png
 *.txt
-*.json
 
 .codex/
 .serena/
