@@ -21,6 +21,11 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org/
 
+      # Trusted publishing (OIDC) requires npm CLI >= 11.5.1.
+      # https://docs.npmjs.com/trusted-publishers
+      - name: Update npm (required for trusted publishing)
+        run: npm i -g npm@^11.5.1
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
@@ -34,6 +39,6 @@ jobs:
         run: yarn build
 
       - name: Publish to npm
-        run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # With trusted publishing configured on npmjs.com, npm will authenticate via OIDC.
+        # Do NOT set NODE_AUTH_TOKEN here; it would force token-based auth instead of OIDC.
+        run: npm publish --access public

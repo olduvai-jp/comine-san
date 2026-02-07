@@ -2,7 +2,7 @@
 
 ## 目的
 
-- `npx comine-san` でゼロインストール実行できる CLI パッケージを npm 上で公開する。
+- `npx @olduvai-jp/comine-san` でゼロインストール実行できる CLI パッケージを npm 上で公開する。
 - ComfyUI ワークフロー実行ロジックを別製品・別サービスから再利用できる TypeScript ライブラリとして切り出す。
 - CLI 利用者・ライブラリ利用者双方にとって分かりやすいビルド／配布フローとドキュメント体制を整備する。
 
@@ -48,7 +48,7 @@
 - `package.json` に `bin` フィールドを追加し、`dist/cli/index.js` を公開。
 - CLI エントリに shebang (`#!/usr/bin/env node`) を挿入し、ESM/CJS 互換のビルド出力を保証。
 - `build` スクリプトで `tsc`（または `tsup`/`esbuild`）を実行、`prepublishOnly` でビルド済 artefact を検証。
-- `npx` 動作確認用に `npm pack` → `npx --yes ./comine-san-x.y.z.tgz` のリハーサル手順を整備。
+- `npx` 動作確認用に `npm pack` → `npx --yes ./olduvai-jp-comine-san-x.y.z.tgz` のリハーサル手順を整備。
 - 標準的な CLI エラーコード、標準出力/標準エラーの整理（ログ抑制/冗長モード等）を検討。
 
 ### 3. TypeScript ライブラリ化
@@ -56,8 +56,8 @@
 - 外部公開したいクラス／関数を選定（例: `ComfyUiWorkflow`, `ComfyAPIClient`, ノード基底クラス, 型定義）。
 - `src/lib/index.ts` で公開 API を明示し、内部実装は相対 import に留める。
 - 型補完向上のため `interfaces.ts` 等で ComfyUI ノードの型を整理、`strict` 設定維持。
-- `package.json` に `exports` & `typesVersions`（必要なら）を追加し、`import 'comine-san/lib'` と `import { ... } from 'comine-san'` の両方に対応。
-- 将来のサブパッケージ（例: `comine-san/nodes`）公開可否を決定し、必要に応じて `exports` へエントリを追加。
+- `package.json` に `exports` & `typesVersions`（必要なら）を追加し、`import '@olduvai-jp/comine-san/lib'` と `import { ... } from '@olduvai-jp/comine-san'` の両方に対応。
+- 将来のサブパッケージ（例: `@olduvai-jp/comine-san/nodes`）公開可否を決定し、必要に応じて `exports` へエントリを追加。
 
 ### 4. ビルド・配布／CI 体制
 

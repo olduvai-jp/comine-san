@@ -39,12 +39,13 @@ function listTsFilesRecursive(dir, prefixRel = '') {
 function main() {
   const pkg = readJson(pkgPath);
   const exportsObj = pkg.exports ?? {};
+  const pkgName = pkg.name;
 
   const specifiers = new Set();
 
   for (const key of Object.keys(exportsObj)) {
     if (key === '.') {
-      specifiers.add('comine-san');
+      specifiers.add(pkgName);
       continue;
     }
     if (!key.startsWith('./')) continue;
@@ -52,12 +53,12 @@ function main() {
     const subpath = key.slice(2); // remove "./"
 
     if (subpath === 'package.json') {
-      specifiers.add('comine-san/package.json');
+      specifiers.add(`${pkgName}/package.json`);
       continue;
     }
 
     if (!subpath.includes('*')) {
-      specifiers.add(`comine-san/${subpath}`);
+      specifiers.add(`${pkgName}/${subpath}`);
       continue;
     }
 
@@ -67,7 +68,7 @@ function main() {
       const workflowDir = path.join(repoRoot, 'src', 'lib', 'workflow');
       for (const f of listTsFiles(workflowDir)) {
         const base = path.basename(f, '.ts');
-        specifiers.add(`comine-san/workflow/${base}`);
+        specifiers.add(`${pkgName}/workflow/${base}`);
       }
       continue;
     }
@@ -76,7 +77,7 @@ function main() {
       const nodesDir = path.join(repoRoot, 'src', 'lib', 'workflow', 'nodes');
       for (const { rel } of listTsFilesRecursive(nodesDir)) {
         const noExt = rel.replace(/\.ts$/, '').split(path.sep).join('/');
-        specifiers.add(`comine-san/nodes/${noExt}`);
+        specifiers.add(`${pkgName}/nodes/${noExt}`);
       }
       continue;
     }

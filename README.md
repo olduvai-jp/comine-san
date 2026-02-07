@@ -75,18 +75,18 @@ yarn start ./path/to/workflow_api.json \
 
 ```ts
 // CommonJS
-const { ComfyUiWorkflow } = require('comine-san');
+const { ComfyUiWorkflow } = require('@olduvai-jp/comine-san');
 
 // ES Modules (tree-shakeable)
-import { ComfyUiWorkflow } from 'comine-san';
+import { ComfyUiWorkflow } from '@olduvai-jp/comine-san';
 
 // サブパス例
-import { ComfyAPIClient } from 'comine-san/lib';
-import { PrimitiveStringCrystools } from 'comine-san/nodes/input/primitiveString';
+import { ComfyAPIClient } from '@olduvai-jp/comine-san/lib';
+import { PrimitiveStringCrystools } from '@olduvai-jp/comine-san/nodes/input/primitiveString';
 ```
 
-- CLI 実行ロジックに直接アクセスする場合は `comine-san/cli` を import してください（`npx` 利用時は不要）。
-- `exports` フィールド経由で CJS/ESM のいずれにも最適化された `dist/cjs` / `dist/esm` を提供しているため、バンドラー経由で未使用のエントリーポイント（例: `comine-san/cli`）を除去できます。
+- CLI 実行ロジックに直接アクセスする場合は `@olduvai-jp/comine-san/cli` を import してください（`npx` 利用時は不要）。
+- `exports` フィールド経由で CJS/ESM のいずれにも最適化された `dist/cjs` / `dist/esm` を提供しているため、バンドラー経由で未使用のエントリーポイント（例: `@olduvai-jp/comine-san/cli`）を除去できます。
 
 ## 開発メモ
 

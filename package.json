@@ -1,7 +1,15 @@
 {
-  "name": "comine-san",
+  "name": "@olduvai-jp/comine-san",
   "version": "1.0.0",
   "description": "run comfy-ui on the command line",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/olduvai-jp/comine-san.git"
+  },
+  "bugs": {
+    "url": "https://github.com/olduvai-jp/comine-san/issues"
+  },
+  "homepage": "https://github.com/olduvai-jp/comine-san#readme",
   "main": "dist/cjs/index.js",
   "types": "dist/types/index.d.ts",
   "bin": {
@@ -68,6 +76,9 @@
     "docs",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.cjs.json && node scripts/build-esm.mjs",

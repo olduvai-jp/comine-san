@@ -9,11 +9,11 @@
 ## インストール
 
 ```bash
-npm install comine-san
+npm install @olduvai-jp/comine-san
 # or
-pnpm add comine-san
+pnpm add @olduvai-jp/comine-san
 # or
-yarn add comine-san
+yarn add @olduvai-jp/comine-san
 ```
 
 - Node.js 18 以上を対象にしています（`fetch`/`WebSocket` 利用のため）。
@@ -22,7 +22,7 @@ yarn add comine-san
 ## クイックスタート
 
 ```ts
-import { ComfyUiWorkflow } from 'comine-san';
+import { ComfyUiWorkflow } from '@olduvai-jp/comine-san';
 import { readFile } from 'node:fs/promises';
 
 const workflowJson = JSON.parse(await readFile('./workflow_api.json', 'utf8'));
@@ -48,10 +48,10 @@ console.log(workflow.getWorkflowResult());
 
 | import                                                                              | 説明                                       |
 | ----------------------------------------------------------------------------------- | ------------------------------------------ |
-| `import { ComfyUiWorkflow } from 'comine-san'`                                      | ワークフロー構築と実行                     |
-| `import { ComfyAPIClient } from 'comine-san/lib'`                                   | ComfyUI API クライアントのみ利用したい場合 |
-| `import type { WorkflowParams, WorkflowResultTypes } from 'comine-san/workflow'`    | 型安全にパラメータや結果を扱いたい場合     |
-| `import { PrimitiveStringCrystools } from 'comine-san/nodes/input/primitiveString'` | ノードクラスを個別に再利用／拡張           |
+| `import { ComfyUiWorkflow } from '@olduvai-jp/comine-san'`                                      | ワークフロー構築と実行                     |
+| `import { ComfyAPIClient } from '@olduvai-jp/comine-san/lib'`                                   | ComfyUI API クライアントのみ利用したい場合 |
+| `import type { WorkflowParams, WorkflowResultTypes } from '@olduvai-jp/comine-san/workflow'`    | 型安全にパラメータや結果を扱いたい場合     |
+| `import { PrimitiveStringCrystools } from '@olduvai-jp/comine-san/nodes/input/primitiveString'` | ノードクラスを個別に再利用／拡張           |
 
 - `package.json` の `exports` と `typesVersions` により、CJS では `dist/cjs`、ESM では `dist/esm` を自動的に参照します。
 - `sideEffects: false` なので、バンドラーが未使用コードを除去しやすくなっています。
@@ -60,15 +60,15 @@ console.log(workflow.getWorkflowResult());
 
 ```ts
 // ルート import（推奨）
-import { ComfyUiWorkflow } from 'comine-san';
+import { ComfyUiWorkflow } from '@olduvai-jp/comine-san';
 
 // サブパス（細粒度な依存に）
-import { InputNode } from 'comine-san/nodes/input/inputNodeBase';
-import type { ComfyUiWorkflowJson } from 'comine-san/workflow';
+import { InputNode } from '@olduvai-jp/comine-san/nodes/input/inputNodeBase';
+import type { ComfyUiWorkflowJson } from '@olduvai-jp/comine-san/workflow';
 ```
 
 - ESM バンドラーではサブパス import を用いることで、CLI など不要部分を取り込まずに済みます。
-- CJS でも `require('comine-san/lib')` のように利用可能です。
+- CJS でも `require('@olduvai-jp/comine-san/lib')` のように利用可能です。
 
 ## カスタムワークフロー構築
 

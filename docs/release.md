@@ -1,13 +1,23 @@
 # リリース手順
 
-`comine-san` を npm へ公開する際のフロー、バージョニング、アクセス管理をまとめたメンテナー向けガイドです。すべてのリリースは Semantic Versioning (`MAJOR.MINOR.PATCH`) に従い、`main` ブランチからのみ行います。
+`@olduvai-jp/comine-san` を npm へ公開する際のフロー、バージョニング、アクセス管理をまとめたメンテナー向けガイドです。すべてのリリースは Semantic Versioning (`MAJOR.MINOR.PATCH`) に従い、`main` ブランチからのみ行います。
 
 ## 前提条件
 
 - Node.js 18 以上と最新の `npm` がインストールされていること。
 - GitHub の `main` ブランチに書き込みできること。
-- npm organization（`comine-san` パッケージの権限）で `publish` 権限を持っていること。
+- npm organization（`@olduvai-jp/comine-san` パッケージの権限）で `publish` 権限を持っていること。
 - 2FA が必須の npm アカウントであること（organization 設定に合わせる）。
+
+## 推奨: Trusted publishing（OIDC）で publish する
+
+本リポジトリは GitHub Actions の OIDC を使った **Trusted publishing**（トークン不要）で publish できるようにしてあります（`.github/workflows/release.yml`）。
+
+- npm 側で Trusted publisher を設定する必要があります（owner/repo/workflow file name が一致していること）。
+- GitHub Actions 側は `permissions: id-token: write` が必要です（設定済み）。
+- npm CLI は `11.5.1` 以上が必要です（Workflow 内で更新しています）。
+
+注意: **初回 publish（まだ npm にパッケージが存在しない状態）では、Trusted publisher を設定する画面自体が無いため、先にトークン等で 1 回 publish してパッケージを作る**必要があります。初回 publish 後に Trusted publisher を設定し、以降の publish は OIDC に移行してください。
 
 ## バージョン管理ポリシー
 
@@ -39,13 +49,11 @@ git push origin main --tags
 npm publish --access public
 ```
 
-CI/CD で自動 publish する場合は、`NODE_AUTH_TOKEN` を GitHub Actions のシークレットに保存し、タグ push をトリガーに `npm publish --provenance` を実行するワークフローを追加してください。
-
 ## GitHub Actions での自動 publish
 
-- `.github/workflows/release.yml` は Release の `published` イベント（または手動 `workflow_dispatch`）で起動し、`yarn install → type-check → test → build → npm publish --provenance` を実行します。
-- 事前に GitHub リポジトリの `Settings > Secrets and variables > Actions` へ `NPM_TOKEN`（publish 権限付きトークン）を登録してください。Workflow では `NODE_AUTH_TOKEN` として自動参照されます。
-- npm 側で provenance が有効になるよう `id-token: write` パーミッションも付与済みです。Organization のポリシーで Provenance を必須にしている場合でも追加設定は不要です。
+- `.github/workflows/release.yml` は Release の `published` イベント（または手動 `workflow_dispatch`）で起動し、`yarn install → type-check → test → build → npm publish` を実行します。
+- Trusted publishing（OIDC）を使う場合、GitHub Secrets に `NPM_TOKEN` を登録する必要はありません。
+- npm 側で provenance が有効になるよう `id-token: write` パーミッションを付与済みです。Organization のポリシーで Provenance を必須にしている場合でも追加設定は不要です。
 - Release を作成して `Publish release` を押すと自動的に npm へ公開されます。事前検証したい場合は `workflow_dispatch` を実行し、成功後に Release を確定させてください。
 
 ## アクセス制御
@@ -60,7 +68,7 @@ CI/CD で自動 publish する場合は、`NODE_AUTH_TOKEN` を GitHub Actions �
 | ------------------------ | --------------------------------------------------------------------------------------------- |
 | `npm version` が失敗する | `git status` が clean か確認。未コミットがあればコミットしてから再実行                        |
 | `npm publish` で 403/401 | npm の 2FA/Token が有効期限切れ。`npm login --registry https://registry.npmjs.org/` で再発行  |
-| 公開後に重大な不具合     | `npm dist-tag add comine-san@<previous-version> latest` でロールバックし、修正版を re-publish |
+| 公開後に重大な不具合     | `npm dist-tag add @olduvai-jp/comine-san@<previous-version> latest` でロールバックし、修正版を re-publish |
 
 ## 今後の自動化 TODO
 

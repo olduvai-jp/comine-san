@@ -10,7 +10,7 @@
 # 1. ComfyUI から workflow_api.json をエクスポート
 # 2. サーバーを起動済みとする（ローカル例: http://127.0.0.1:8188 / 別ホスト例: http://192.168.23.17:8188）
 
-npx comine-san ./workflows/workflow_api.json \
+npx @olduvai-jp/comine-san ./workflows/workflow_api.json \
   --Prompt_Text.string "generate a cute mascot" \
   --output-json ./results/metadata.json
 ```
@@ -25,18 +25,18 @@ npx comine-san ./workflows/workflow_api.json \
 ComfyUI サーバーに接続せず、ローカルのワークフロー JSON を読み込んで CLI オプション生成まで確認できます。
 
 ```bash
-npx comine-san ./example/t2i_sd15.json --help
+npx @olduvai-jp/comine-san ./example/t2i_sd15.json --help
 ```
 
 ## インストールと実行方法
 
 | 方法                   | コマンド                                                               | 補足                                                |
 | ---------------------- | ---------------------------------------------------------------------- | --------------------------------------------------- |
-| 一度きりの実行         | `npx comine-san <workflow>`                                            | Node.js 18+ 必須。`npm`/`pnpm`/`yarn` いずれでも OK |
-| グローバルインストール | `npm i -g comine-san` → `comine-san <workflow>`                        | CLI を頻繁に使う場合に便利                          |
+| 一度きりの実行         | `npx @olduvai-jp/comine-san <workflow>`                                | Node.js 18+ 必須。`npm`/`pnpm`/`yarn` いずれでも OK |
+| グローバルインストール | `npm i -g @olduvai-jp/comine-san` → `comine-san <workflow>`            | CLI を頻繁に使う場合に便利                          |
 | package.json Script    | `"scripts": { "generate": "comine-san ./workflow.json --server ..." }` | CI やバッチから呼び出しやすい                       |
 
-アンインストール: `npm uninstall -g comine-san` またはローカルプロジェクトから `npm uninstall comine-san`。
+アンインストール: `npm uninstall -g @olduvai-jp/comine-san` またはローカルプロジェクトから `npm uninstall @olduvai-jp/comine-san`。
 
 ## コマンドオプション一覧
 
@@ -93,7 +93,7 @@ comine-san ./example/t2i_sd15.json \
 
 ## CI や自動化での利用
 
-- GitHub Actions などで `npx comine-san` を実行する場合は、ワークフロー JSON と ComfyUI サーバーへの接続情報（VPN / テスト用モック）を事前に準備してください。
+- GitHub Actions などで `npx @olduvai-jp/comine-san` を実行する場合は、ワークフロー JSON と ComfyUI サーバーへの接続情報（VPN / テスト用モック）を事前に準備してください。
 - exit code は以下の通りです（CI で分岐しやすいよう用途別に分けています）。
 
 | exit code | 意味                          |
