@@ -34,9 +34,15 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p ci-artifacts
-          TGZ="$(npm pack --pack-destination ./ci-artifacts)"
-          # npm pack may print just the filename; normalize to a path we can upload.
-          echo "PACKAGE_TGZ=ci-artifacts/${TGZ##*/}" >> "$GITHUB_ENV"
+          # npm may print notices on stdout depending on version/config; take only the tarball filename line.
+          TGZ="$(npm pack --pack-destination ./ci-artifacts --silent | tr -d '\r' | tail -n 1)"
+          TGZ="${TGZ##*/}"
+          test -n "$TGZ"
+          case "$TGZ" in
+            *.tgz) ;;
+            *) echo "Unexpected npm pack output: $TGZ" >&2; exit 1 ;;
+          esac
+          printf 'PACKAGE_TGZ=%s\n' "ci-artifacts/$TGZ" >> "$GITHUB_ENV"
 
       - name: Upload npm package artifact
         uses: actions/upload-artifact@v4
