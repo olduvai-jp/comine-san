@@ -16,15 +16,31 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: yarn
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
       - name: Type check
-        run: yarn type-check
+        run: npm run type-check
 
       - name: Test
-        run: yarn test
+        run: npm run test
 
-      - name: Build
-        run: yarn build
+      - name: Prepare (build)
+        run: npm run prepare
+
+      - name: Pack npm tarball
+        run: |
+          set -euo pipefail
+          mkdir -p ci-artifacts
+          TGZ="$(npm pack --pack-destination ./ci-artifacts)"
+          # npm pack may print just the filename; normalize to a path we can upload.
+          echo "PACKAGE_TGZ=ci-artifacts/${TGZ##*/}" >> "$GITHUB_ENV"
+
+      - name: Upload npm package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: ${{ env.PACKAGE_TGZ }}
+          if-no-files-found: error

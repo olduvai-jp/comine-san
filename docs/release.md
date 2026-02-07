@@ -23,7 +23,7 @@
 
 1. `main` を最新にし、未マージの変更がないか確認する。
 2. ドキュメント（`README.md`, `docs/*.md`）と `CHANGELOG.md` を更新する。
-3. `npm run prepublishOnly` で型チェックとビルドが通ることを確認する。
+3. `npm run prepublishOnly` で型チェック・テスト・ビルドが通ることを確認する。
 4. `docs/cli-guide.md` の手順で `npm pack` → `npx` リハーサルを行い、生成物が動作することを確認する。
 5. `npm version <major|minor|patch>` を実行し、バージョン番号とタグを更新する。
 6. `git push origin main --tags` を実行し、CI が成功することを確認する。
@@ -64,4 +64,5 @@ CI/CD で自動 publish する場合は、`NODE_AUTH_TOKEN` を GitHub Actions �
 
 ## 今後の自動化 TODO
 
-- `npm run test --coverage` の結果や `npm pack` 生成物を CI のアーティファクトとして保存し、レビュー時の検証コストを下げる。
+- ✅ `npm pack` 生成物（`.tgz`）を CI のアーティファクトとして保存し、レビュー時の検証コストを下げる。
+- TODO: `npm run test` のログや `test --coverage` の成果物を CI のアーティファクトとして保存する（カバレッジは別途対応）。

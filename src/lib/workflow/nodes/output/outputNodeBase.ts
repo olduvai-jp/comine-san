@@ -44,26 +44,20 @@ export class OutputNode {
   onProgress(_comfyui: ComfyAPIClient, data: any): void {
     const nodeId = data.node as string;
     if (nodeId !== this.nodeId) return;
-
-    console.log('Progress:', data);
   }
 
   onExecuting(_comfyui: ComfyAPIClient, data: any): void {
     const nodeId = data.node as string;
     if (nodeId !== this.nodeId) return;
-
-    console.log('Executing:', data);
   }
 
   onExecuted(_comfyui: ComfyAPIClient, data: any): void {
     const nodeId = data.node as string;
     if (nodeId !== this.nodeId) return;
-
-    console.log('Executed:', data);
   }
 
   onGetArrayBuffer(_comfyui: ComfyAPIClient, data: any): void {
-    console.log('GetArrayBuffer:', data);
+    void data;
   }
 
   // Disconnect callback. Historically both `onDisconnect` and `onDisconnected` have been used.

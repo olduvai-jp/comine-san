@@ -78,7 +78,8 @@
     "start": "ts-node src/cli/bin.ts",
     "test": "node scripts/test.mjs",
     "type-check": "tsc --noEmit",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run type-check && npm run test && npm run build"
   },
   "dependencies": {
     "commander": "^12.1.0",

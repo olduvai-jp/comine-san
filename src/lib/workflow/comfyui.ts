@@ -16,6 +16,13 @@ export interface UploadImageResponse {
   type: string;
 }
 
+export type ComfyLogger = {
+  debug?: (...args: any[]) => void;
+  info?: (...args: any[]) => void;
+  warn?: (...args: any[]) => void;
+  error?: (...args: any[]) => void;
+};
+
 export type ComfyFetch = (
   input: any,
   init?: any
@@ -41,21 +48,35 @@ export type ComfyWebSocketCtor = {
   OPEN: number;
 };
 
+const noop = () => {};
+
+function normalizeLogger(logger?: ComfyLogger): Required<ComfyLogger> {
+  return {
+    debug: logger?.debug ?? noop,
+    info: logger?.info ?? noop,
+    warn: logger?.warn ?? noop,
+    error: logger?.error ?? noop,
+  };
+}
+
 export class ComfyAPIClient {
   private _url: string;
   private _fetch: ComfyFetch;
   private _WebSocket: ComfyWebSocketCtor;
+  private _logger: Required<ComfyLogger>;
 
   constructor(
     url: string,
     deps?: {
       fetch?: ComfyFetch;
       WebSocket?: ComfyWebSocketCtor;
+      logger?: ComfyLogger;
     }
   ) {
     this._url = url.replace(/\/+$/, '');
     this._fetch = deps?.fetch ?? fetch;
     this._WebSocket = deps?.WebSocket ?? WsWebSocket;
+    this._logger = normalizeLogger(deps?.logger);
   }
 
   private get wsUrl(): string {
@@ -152,7 +173,7 @@ export class ComfyAPIClient {
     });
 
     ws.on('error', (err: Error) => {
-      console.log(err);
+      this._logger.error(err);
       finalize();
     });
 
@@ -204,12 +225,11 @@ export class ComfyAPIClient {
           case 'execution_success':
             break;
           default:
-            console.log('Unknown message type');
-            console.log(message);
+            this._logger.debug('Unknown message type', message);
             break;
         }
       } catch (e) {
-        console.log(e);
+        this._logger.error(e);
       }
     });
 

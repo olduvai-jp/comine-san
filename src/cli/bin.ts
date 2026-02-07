@@ -3,6 +3,5 @@ import { runCli } from './index';
 
 runCli().catch((error) => {
   console.error(error);
-  process.exitCode = 1;
+  if (process.exitCode == null) process.exitCode = 1;
 });
-
