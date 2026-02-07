@@ -8,6 +8,7 @@
 - GitHub の `main` ブランチに書き込みできること。
 - npm organization（`@olduvai-jp/comine-san` パッケージの権限）で `publish` 権限を持っていること。
 - 2FA が必須の npm アカウントであること（organization 設定に合わせる）。
+- ローカルの npm 設定で `@olduvai-jp:registry` が GitHub Packages を指している場合は、`npm publish`/`npm view` が npmjs.com ではなく GitHub Packages に向くため注意してください（本リポジトリは `.npmrc` で npmjs.com を明示しています）。
 
 ## 推奨: Trusted publishing（OIDC）で publish する
 
