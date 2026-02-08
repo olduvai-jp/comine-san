@@ -44,3 +44,11 @@ npm pack
 npx --yes ./olduvai-jp-comine-san-*.tgz ./path/to/workflow_api.json --help
 ```
 
+## List installed models (ComfyUI API)
+
+Use when ComfyUI errors with `not found` for a checkpoint/LoRA/VAE and you need candidate names:
+
+```bash
+curl http://127.0.0.1:8188/models
+curl http://127.0.0.1:8188/models/checkpoints
+```

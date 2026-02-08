@@ -1,6 +1,6 @@
 ---
 name: comine-san-cli
-description: Run ComfyUI workflows from the command line using comine-san (npx). Use when the user has a ComfyUI-exported workflow_api.json and wants to (1) discover generated CLI options via --help, (2) execute against a ComfyUI server via --server, (3) save aggregated results via --output-json, or (4) script runs with --quiet and troubleshoot common failures (missing file, invalid JSON, cannot connect to server).
+description: Run ComfyUI workflows from the command line using comine-san (npx). Use when the user has a ComfyUI-exported workflow_api.json and wants to (1) discover generated CLI options via --help, (2) execute against a ComfyUI server via --server, (3) save aggregated results via --output-json, or (4) script runs with --quiet and troubleshoot common failures (missing file, invalid JSON, cannot connect to server, model not found).
 ---
 
 # Comine San CLI
@@ -55,6 +55,14 @@ Example:
 - If `--help` shows no generated options: confirm you exported `workflow_api.json` (not the UI workflow json).
 - If it fails to connect: confirm the server URL and that ComfyUI is reachable from your machine.
 - If a parameter seems ignored: confirm you used the exact option spelling from `--help` for that workflow.
+- If ComfyUI returns `not found` for a model (e.g. checkpoint/LoRA/VAE): query the server's model list API to find the exact installed name/path:
+
+```bash
+curl http://127.0.0.1:8188/models
+curl http://127.0.0.1:8188/models/checkpoints
+curl http://127.0.0.1:8188/models/loras
+curl http://127.0.0.1:8188/models/vae
+```
 
 ## References
 
