@@ -15,3 +15,19 @@ export class PrimitiveIntegerCrystools extends InputNode {
     this._inputs = inputs;
   }
 }
+
+interface PrimitiveIntInputs {
+  value: number;
+}
+
+export class PrimitiveInt extends InputNode {
+  static _className = 'PrimitiveInt';
+
+  get inputs() {
+    return JSON.parse(JSON.stringify(this._inputs)) as PrimitiveIntInputs;
+  }
+
+  set inputs(inputs: PrimitiveIntInputs) {
+    this._inputs = inputs;
+  }
+}

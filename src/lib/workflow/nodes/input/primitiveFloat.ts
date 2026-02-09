@@ -15,3 +15,19 @@ export class PrimitiveFloatCrystools extends InputNode {
     this._inputs = inputs;
   }
 }
+
+interface PrimitiveFloatInputs {
+  value: number;
+}
+
+export class PrimitiveFloat extends InputNode {
+  static _className = 'PrimitiveFloat';
+
+  get inputs() {
+    return JSON.parse(JSON.stringify(this._inputs)) as PrimitiveFloatInputs;
+  }
+
+  set inputs(inputs: PrimitiveFloatInputs) {
+    this._inputs = inputs;
+  }
+}

@@ -1,9 +1,10 @@
 import EventEmitter from 'events';
 import { ComfyAPIClient } from './comfyui';
 import { InputNode } from './nodes/input/inputNodeBase';
-import { PrimitiveStringCrystools } from './nodes/input/primitiveString';
-import { PrimitiveIntegerCrystools } from './nodes/input/primitiveInteger';
-import { PrimitiveFloatCrystools } from './nodes/input/primitiveFloat';
+import { PrimitiveString, PrimitiveStringCrystools, PrimitiveStringMultiline } from './nodes/input/primitiveString';
+import { PrimitiveInt, PrimitiveIntegerCrystools } from './nodes/input/primitiveInteger';
+import { PrimitiveBoolean } from './nodes/input/primitiveBoolean';
+import { PrimitiveFloat, PrimitiveFloatCrystools } from './nodes/input/primitiveFloat';
 
 import { OutputNode } from './nodes/output/outputNodeBase';
 import { SaveImage } from './nodes/output/saveImage';
@@ -15,6 +16,11 @@ import { LoadImage } from './nodes/input/loadImage';
 import type { WorkflowResults, WorkflowResultTypes } from './resultTypes';
 
 const inputNodeClasses = [
+  PrimitiveString,
+  PrimitiveStringMultiline,
+  PrimitiveInt,
+  PrimitiveFloat,
+  PrimitiveBoolean,
   PrimitiveStringCrystools,
   PrimitiveIntegerCrystools,
   PrimitiveFloatCrystools,

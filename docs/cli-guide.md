@@ -15,6 +15,7 @@ npx @olduvai-jp/comine-san ./workflows/workflow_api.json \
   --output-json ./results/metadata.json
 ```
 
+- ComfyUI 標準 primitives（`utils/primitive`）の入力キーは `value` です（例: `--Seed.value 123`）。
 - `workflow-path`: 最初の必須引数。ComfyUI でエクスポートした JSON へのパス。
 - `--server`: ComfyUI の URL。省略時は `http://127.0.0.1:8188`。
 - `--output-json`: 実行結果（各出力ノードの戻り値）を保存するパス。省略時は `metadata.json`。

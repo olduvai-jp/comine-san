@@ -31,6 +31,36 @@ function makeWorkflowJson(): ComfyUiWorkflowJson {
   };
 }
 
+function makeWorkflowJsonNativePrimitives(): ComfyUiWorkflowJson {
+  return {
+    '1': {
+      class_type: 'PrimitiveStringMultiline',
+      inputs: { value: 'hello' },
+      _meta: { title: 'Prompt Text' },
+    },
+    '2': {
+      class_type: 'PrimitiveInt',
+      inputs: { value: 123 },
+      _meta: { title: 'Seed#1' },
+    },
+    '3': {
+      class_type: 'PrimitiveFloat',
+      inputs: { value: 7.5 },
+      _meta: { title: 'CFG' },
+    },
+    '4': {
+      class_type: 'PrimitiveBoolean',
+      inputs: { value: true },
+      _meta: { title: 'Enabled?' },
+    },
+    '5': {
+      class_type: 'SaveImage',
+      inputs: {},
+      _meta: { title: 'Output Image' },
+    },
+  };
+}
+
 test('getWorkflowParams uses normalized titles and includes input/output params', () => {
   const workflow = new ComfyUiWorkflow(makeWorkflowJson());
   const params = workflow.getWorkflowParams();
@@ -42,6 +72,34 @@ test('getWorkflowParams uses normalized titles and includes input/output params'
 
   assert.equal(params['Prompt Text.string'], undefined);
   assert.equal(params['Seed#1.int'], undefined);
+});
+
+test('native primitives: getWorkflowParams uses .value inputs', () => {
+  const workflow = new ComfyUiWorkflow(makeWorkflowJsonNativePrimitives());
+  const params = workflow.getWorkflowParams();
+
+  assert.equal(params['Prompt_Text.value'], 'hello');
+  assert.equal(params['Seed_1.value'], 123);
+  assert.equal(params['CFG.value'], 7.5);
+  assert.equal(params['Enabled_.value'], true);
+  assert.equal(params['Output_Image.filename'], 'Output_Image.png');
+});
+
+test('native primitives: setWorkflowParams updates .value inputs', () => {
+  const workflow = new ComfyUiWorkflow(makeWorkflowJsonNativePrimitives());
+
+  workflow.setWorkflowParams({
+    'Prompt_Text.value': 'updated',
+    'Seed_1.value': 999,
+    'CFG.value': 2.25,
+    'Enabled_.value': false,
+  });
+
+  const modified = workflow.getModifiedJson();
+  assert.equal(modified['1'].inputs.value, 'updated');
+  assert.equal(modified['2'].inputs.value, 999);
+  assert.equal(modified['3'].inputs.value, 2.25);
+  assert.equal(modified['4'].inputs.value, false);
 });
 
 test('setWorkflowParams updates existing params (but ignores undefined and unknown keys)', () => {

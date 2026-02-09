@@ -41,6 +41,7 @@ console.log(workflow.getWorkflowResult());
 ```
 
 - `getWorkflowParams()` で CLI と同じキー（`<ノード>.<入力>`）が得られます。
+- ComfyUI 標準 primitives（`utils/primitive`）の入力キーは `value` です（例: `Seed.value`）。
 - `execute()` は内部で `ComfyAPIClient` を使って HTTP/WebSocket 通信を行います。
 - `getWorkflowResult()` は出力ノードごとの結果を `{ [nodeTitle]: payload }` 形式で返します。
 
@@ -52,6 +53,7 @@ console.log(workflow.getWorkflowResult());
 | `import { ComfyAPIClient } from '@olduvai-jp/comine-san/lib'`                                   | ComfyUI API クライアントのみ利用したい場合 |
 | `import type { WorkflowParams, WorkflowResultTypes } from '@olduvai-jp/comine-san/workflow'`    | 型安全にパラメータや結果を扱いたい場合     |
 | `import { PrimitiveStringCrystools } from '@olduvai-jp/comine-san/nodes/input/primitiveString'` | ノードクラスを個別に再利用／拡張           |
+| `import { PrimitiveInt } from '@olduvai-jp/comine-san/nodes/input/primitiveInteger'`            | ComfyUI 標準 primitives（`PrimitiveInt`）  |
 
 - `package.json` の `exports` と `typesVersions` により、CJS では `dist/cjs`、ESM では `dist/esm` を自動的に参照します。
 - `sideEffects: false` なので、バンドラーが未使用コードを除去しやすくなっています。

@@ -15,9 +15,10 @@ export { ComfyAPIClient, type ViewQuery } from './workflow/comfyui';
 export { InputNode } from './workflow/nodes/input/inputNodeBase';
 export { OutputNode } from './workflow/nodes/output/outputNodeBase';
 
-export { PrimitiveStringCrystools } from './workflow/nodes/input/primitiveString';
-export { PrimitiveIntegerCrystools } from './workflow/nodes/input/primitiveInteger';
-export { PrimitiveFloatCrystools } from './workflow/nodes/input/primitiveFloat';
+export { PrimitiveString, PrimitiveStringMultiline, PrimitiveStringCrystools } from './workflow/nodes/input/primitiveString';
+export { PrimitiveInt, PrimitiveIntegerCrystools } from './workflow/nodes/input/primitiveInteger';
+export { PrimitiveFloat, PrimitiveFloatCrystools } from './workflow/nodes/input/primitiveFloat';
+export { PrimitiveBoolean } from './workflow/nodes/input/primitiveBoolean';
 export { LoadImageBase64 } from './workflow/nodes/input/loadImageBase64';
 export { LoadImage } from './workflow/nodes/input/loadImage';
 
