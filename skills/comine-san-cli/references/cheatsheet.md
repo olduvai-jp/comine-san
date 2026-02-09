@@ -23,6 +23,16 @@ out_json="$(npx --yes @olduvai-jp/comine-san ./path/to/workflow_api.json --quiet
 cat "$out_json"
 ```
 
+## Run (no output json file)
+
+Print the output JSON to stdout (no file will be created):
+
+```bash
+npx --yes @olduvai-jp/comine-san ./path/to/workflow_api.json \
+  --server http://127.0.0.1:8188 \
+  --output-json -
+```
+
 ## Pass workflow parameters
 
 Generated parameters depend on the workflow. Example:

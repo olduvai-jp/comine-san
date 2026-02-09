@@ -300,6 +300,47 @@ test('runCli: --quiet prints only output json path to stdout', async () => {
   }
 });
 
+test('runCli: --output-json - prints JSON to stdout and does not create a file', async () => {
+  const originalExitCode = process.exitCode;
+  const originalExecute = (ComfyUiWorkflow.prototype as any).execute;
+  process.exitCode = undefined;
+
+  (ComfyUiWorkflow.prototype as any).execute = async () => {};
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'comine-san-tests-'));
+  const workflowPath = path.join(dir, 'workflow_api.json');
+  fs.writeFileSync(
+    workflowPath,
+    JSON.stringify({
+      '1': {
+        class_type: 'Primitive string multiline [Crystools]',
+        inputs: { string: 'hello' },
+        _meta: { title: 'Prompt Text' },
+      },
+    }),
+    'utf8',
+  );
+
+  const cap = captureStdoutStderr();
+  try {
+    await runCli(['node', 'comine-san', workflowPath, '--output-json', '-']);
+    assert.ok(process.exitCode == null || process.exitCode === 0);
+    const stdout = cap.getStdout();
+    assert.doesNotThrow(() => JSON.parse(stdout), 'stdout should be valid JSON');
+    assert.equal(cap.getStderr(), '');
+    assert.equal(fs.readdirSync(dir).includes('metadata.json'), false);
+  } finally {
+    cap.restore();
+    (ComfyUiWorkflow.prototype as any).execute = originalExecute;
+    process.exitCode = originalExitCode;
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // ignore
+    }
+  }
+});
+
 test('runCli: --verbose event logs go to stderr (stdout stays human log)', async () => {
   const originalExitCode = process.exitCode;
   const originalExecute = (ComfyUiWorkflow.prototype as any).execute;

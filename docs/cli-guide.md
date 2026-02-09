@@ -18,6 +18,7 @@ npx @olduvai-jp/comine-san ./workflows/workflow_api.json \
 - `workflow-path`: 最初の必須引数。ComfyUI でエクスポートした JSON へのパス。
 - `--server`: ComfyUI の URL。省略時は `http://127.0.0.1:8188`。
 - `--output-json`: 実行結果（各出力ノードの戻り値）を保存するパス。省略時は `metadata.json`。
+  - `--output-json -` を指定すると、ファイルには保存せず stdout に JSON を出力します。
 - それ以外の `--<ノードタイトル>.<入力名>` オプションはワークフローから自動生成され、デフォルト値も `workflow_api.json` から抽出されます。
 
 ### サーバー不要の動作確認（--help）
@@ -44,7 +45,7 @@ npx @olduvai-jp/comine-san ./example/t2i_sd15_base.json --help
 | -------------------------- | ------------------ | ----------------------- | ---------------------------------------------------- |
 | `<workflow-path>`          | path               | なし                    | 必須。ワークフロー JSON の場所                       |
 | `--server <url>`           | string             | `http://127.0.0.1:8188` | ComfyUI サーバーの URL                               |
-| `--output-json <path>`     | string             | `metadata.json`         | 実行結果を保存する JSON の出力パス                   |
+| `--output-json <path>`     | string             | `metadata.json`         | 実行結果を保存する JSON の出力パス（`-` で stdout）  |
 | `-q, --quiet`              | boolean            | `false`                 | 成功時は出力 JSON のパスだけを出力し、それ以外のログを抑制 |
 | `-v, --verbose`            | boolean            | `false`                 | progress/executing/executed のイベントログを表示     |
 | `--<NodeTitle>.<InputKey>` | string/number/bool | ワークフロー定義        | 自動生成されたノード引数。例: `--Prompt_Text.string` |

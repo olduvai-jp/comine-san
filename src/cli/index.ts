@@ -51,7 +51,7 @@ export async function runCli(argv: string[] = process.argv): Promise<void> {
   program
     .argument('<workflow-path>', 'path to workflow_api.json')
     .option('--server <string>', 'server url', 'http://127.0.0.1:8188')
-    .option('--output-json <string>', 'path to output json', 'metadata.json')
+    .option('--output-json <string>', 'path to output json (use "-" for stdout)', 'metadata.json')
     .option('-q, --quiet', 'suppress output (prints only output json path on success)')
     .option('-v, --verbose', 'print progress/executing/executed events');
 
@@ -171,10 +171,15 @@ export async function runCli(argv: string[] = process.argv): Promise<void> {
 
   const results = workflow.getWorkflowResult();
   const outputJsonPath = options.outputJson;
-  fs.writeFileSync(outputJsonPath, JSON.stringify(results, null, 2));
-  if (options.quiet) {
-    console.log(outputJsonPath);
-  } else {
-    console.log(`Output json saved to ${outputJsonPath}`);
+  const json = JSON.stringify(results, null, 2);
+
+  // Convention: `--output-json -` writes JSON to stdout (and does not create any file).
+  if (outputJsonPath === '-') {
+    process.stdout.write(json + '\n');
+    return;
   }
+
+  fs.writeFileSync(outputJsonPath, json);
+  if (options.quiet) console.log(outputJsonPath);
+  else console.log(`Output json saved to ${outputJsonPath}`);
 }
